@@ -1,0 +1,6 @@
+data/
+output/
+*.swp
+*.config
+__pycache__
+*.egg-info
