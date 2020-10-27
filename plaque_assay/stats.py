@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.optimize
 
+import data
+
 
 def exp_decay(x, a, b, c):
     """exponential decay function"""
@@ -27,12 +29,8 @@ def non_linear_model(x, y):
     """
     fit non-linear least squares to the data
     """
-    try:
-        popt, pcov = scipy.optimize.curve_fit(exp_decay, x, y)
-        return(popt)
-    except RuntimeError as e:
-        print(f"Failed to fit model: {e}")
-        return None
+    popt, pcov = scipy.optimize.curve_fit(exp_decay, x, y)
+    return popt
 
 
 def calc_results_simple(df, threshold=50):
@@ -69,7 +67,11 @@ def calc_results_model(df, threshold=50):
             result = "complete inhibition"
         else:
             # fit non-linear_model
-            model_params = non_linear_model(x, y)
+            try:
+                model_params = non_linear_model(x, y)
+            except RuntimeError:
+                print(f"Model fit failure: {name}")
+                model_params = None
             if model_params is not None:
                 # model successfully fit
                 intersect_x, intersect_y = find_intersect_on_curve(
@@ -99,3 +101,30 @@ def simple_threshold(x, y, ec):
         return x[np.argmax(y <= ec)]
 
 
+def calc_percentage_infected(df):
+    colname = "Background subtracted Plaque Area"
+    virus_only_median = df[df["Well"].isin(data.VIRUS_ONLY_WELLS)][colname].median()
+    # TODO: if virus_only_median < 0.3, indicate plate fail
+    if virus_only_median < 0.3:
+        print("plate fail: virus_only_median < 0.3")
+    df["Percentage Infected"] = (df[colname] / virus_only_median) * 100
+    return df
+
+
+def subtract_background(
+    df,
+    colname="Normalised Plaque area",
+    new_colname="Background subtracted Plaque Area",
+    no_virus_wells=data.NO_VIRUS_WELLS,
+):
+    background = df[df["Well"].isin(no_virus_wells)][colname].median()
+    df[new_colname] = df[colname] - background
+    return df
+
+
+def calc_median_all_plates(df):
+    """
+    calculate the median of "Cells - Image Region Area - Mean per Well"
+    for all wells of all plates
+    """
+    return df["Cells - Image Region Area [µm²] - Mean per Well"].median()
