@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 import pandas as pd
 
@@ -56,14 +57,11 @@ def test_detect_high_background():
     failures = qc.detect_high_background(dataframe)
     # check we've found the high-background wells in both
     # the #25 and #26 plates
-    high_background_25 = set()
-    high_background_26 = set()
+    high_background = defaultdict(set)
     for failure in failures:
-        if failure["plate"] == 25:
-            high_background_25.add(failure["well"])
-        elif failure["plate"] == 26:
-            high_background_26.add(failure["well"])
-        else:
-            assert False, "high-background detected in unexpected plate"
-    assert high_background_25 == real_high_background_wells
-    assert high_background_26 == real_high_background_wells
+        high_background[failure["plate"]].add(failure["well"])
+    # check only plates #25 #26 have high-background wells
+    assert sorted(list(high_background.keys())) == [25, 26]
+    # check both plates have the expected failed wells
+    for plate_num in high_background:
+        assert high_background[plate_num] == real_high_background_wells
