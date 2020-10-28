@@ -13,7 +13,7 @@ import stats
 
 
 def test_plot(
-    df, wells=["C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11"]
+    df, wells=["E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10", "E11"]
 ):
     import matplotlib.pyplot as plt
 
@@ -53,8 +53,8 @@ def test_plot(
 
 
 def main():
-    df = data.read_data()
-    failures = qc.detect_failures(df, 0.99)
+    df = data.read_data_19()
+    failures = qc.detect_failures(df, 0.7)
     df = stats.subtract_background(df)
     df = stats.calc_percentage_infected(df)
     failures_high_background = qc.detect_high_background(df)
