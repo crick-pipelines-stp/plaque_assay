@@ -4,7 +4,7 @@ from string import ascii_uppercase
 from . import stats
 
 
-def detect_failures(df, threshold=0.7):
+def detect_low_cells_image_region_area(df, threshold=0.7):
     """
     Identify wells where "Cells - Image Region Area [µm²] - Mean per Well"
     is < 70% of the median calculated in "calc_median_all_plates()"

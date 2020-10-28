@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.polynomial.polynomial as poly
 import scipy.optimize
 
 from . import data
@@ -25,16 +26,34 @@ def find_intersect_on_curve(x_min, x_max, func, params, intersect=50):
     return x[idx], curve[idx]
 
 
+def find_intersect_on_curve_polynomial(x_min, x_max, poly_fit, intersect=50):
+    x = np.linspace(x_min, x_max, 1000)
+    line = np.full(x.shape, intersect)
+    curve = poly_fit(x)
+    idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
+    if len(idx) > 1:
+        print(f"Found more than 1 intersect. len = {len(idx)}")
+    return x[idx], curve[idx]
+
+
 def non_linear_model(x, y):
     """
     fit non-linear least squares to the data
     """
     # initial guess at sensible parameters
-    p0 = [100, 75, 0]
+    p0 = [100, 100, 0]
     popt, pcov = scipy.optimize.curve_fit(
         exp_decay, x, y, p0=p0, method="lm", maxfev=1000,
     )
     return popt, pcov
+
+
+def polynomial_model(x, y, d=2):
+    """
+    fit polynomial model, return function which can be used on new data.
+    """
+    popt = poly.polyfit(x, y, d)
+    return poly.Polynomial(popt)
 
 
 def confidence_bands(func, model_params, model_cov, x=None):
@@ -102,7 +121,15 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
                     result = "Failed to fit model"
             else:
                 # model failed to fit
+                poly_fit = polynomial_model(x, y)
                 result = "Failed to fit model"
+                intersect_x, intersect_y = find_intersect_on_curve_polynomial(
+                    x_min, x_max, poly_fit
+                )
+                try:
+                    result = 1 / intersect_x[0]
+                except IndexError:
+                    result = "Failed to fit model"
         output[name] = result
     return output
 
