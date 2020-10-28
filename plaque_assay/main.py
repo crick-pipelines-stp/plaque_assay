@@ -1,15 +1,9 @@
-import os
 import json
-from glob import glob
-from string import ascii_uppercase
-from collections import namedtuple
-
-import pandas as pd
 import numpy as np
 
-import data
-import qc
-import stats
+from . import data
+from . import qc
+from . import stats
 
 
 def test_plot(

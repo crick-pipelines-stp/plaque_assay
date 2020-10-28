@@ -1,12 +1,11 @@
 import os
-import json
-from glob import glob
 
 import pandas as pd
 
-import utils
+from . import utils
 
-### TEMP STUFF ###
+
+# --- TEMP STUFF ---#
 # this will change as the barcodes are standardised
 # but for now we are hard-coding this in the code
 
@@ -46,7 +45,7 @@ def read_data_14(data_dir=DATA_DIR):
     return pd.concat(dataframes)
 
 
-### END TEMP STUFF ###
+# --- END TEMP STUFF ---#
 
 
 def read_data_19(data_dir="../data/RuthExpt20201019"):

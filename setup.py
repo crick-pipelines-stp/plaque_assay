@@ -15,5 +15,6 @@ setup(
     packages=["plaque_assay"],
     python_requires=">=3.6",
     install_requires=read_requirements(),
+    tests_require="pytest",
     zip_safe=True,
 )

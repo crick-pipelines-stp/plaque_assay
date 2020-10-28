@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize
 
-import data
+from . import data
 
 
 def exp_decay(x, a, b, c):

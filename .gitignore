@@ -1,6 +1,7 @@
 data/
 output/
 *.swp
+.vscode
 *.config
 __pycache__
 *.egg-info

@@ -1,7 +1,7 @@
 from collections import namedtuple
 from string import ascii_uppercase
 
-import stats
+from . import stats
 
 
 def detect_failures(df, threshold=0.7):
