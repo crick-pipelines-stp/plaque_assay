@@ -29,8 +29,24 @@ def non_linear_model(x, y):
     """
     fit non-linear least squares to the data
     """
-    popt, pcov = scipy.optimize.curve_fit(exp_decay, x, y)
-    return popt
+    # initial guess at sensible parameters
+    p0 = [100, 75, 0]
+    popt, pcov = scipy.optimize.curve_fit(
+        exp_decay, x, y, p0=p0, method="lm", maxfev=1000,
+    )
+    return popt, pcov
+
+
+def confidence_bands(func, model_params, model_cov, x=None):
+    """
+    returns upper and lower confidence bands
+    """
+    sigma = np.sqrt(np.diagonal(model_cov))
+    if x is None:
+        x = np.linspace(40, 2560, 1000)
+    bound_upper = func(x, *(model_params + sigma))
+    bound_lower = func(x, *(model_params - sigma))
+    return bound_lower, bound_upper
 
 
 def calc_results_simple(df, threshold=50):
@@ -51,7 +67,7 @@ def calc_results_simple(df, threshold=50):
     return output
 
 
-def calc_results_model(df, threshold=50):
+def calc_results_model(df, threshold=50, weak_threshold=60):
     output = dict()
     for name, group in df.groupby("Well"):
         group = group.copy()
@@ -59,16 +75,19 @@ def calc_results_model(df, threshold=50):
         x = group["Dilution"].values
         x_min, x_max = x.min(), x.max()
         y = group["Percentage Infected"].values
-        if min(y) > threshold:
+        if min(y) > weak_threshold:
             # if y never crosses below ec threshold
             result = "no inhibition"
+        elif min(y) < weak_threshold and min(y) > threshold:
+            # if 1/40 dilution reaches 60% percent infected
+            result = "weak inhibition"
         elif y[0] <= threshold:
             # if already starts below ec threshold
             result = "complete inhibition"
         else:
             # fit non-linear_model
             try:
-                model_params = non_linear_model(x, y)
+                model_params, _ = non_linear_model(x, y)
             except RuntimeError:
                 print(f"Model fit failure: {name}")
                 model_params = None
@@ -77,7 +96,10 @@ def calc_results_model(df, threshold=50):
                 intersect_x, intersect_y = find_intersect_on_curve(
                     x_min, x_max, exp_decay, model_params
                 )
-                result = 1 / intersect_x[0]
+                try:
+                    result = 1 / intersect_x[0]
+                except IndexError:
+                    result = "Failed to fit model"
             else:
                 # model failed to fit
                 result = "Failed to fit model"

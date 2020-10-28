@@ -42,5 +42,5 @@ def detect_high_background(df):
     for idx, well, plate, val in df[columns].itertuples():
         if val > threshold:
             print(f"QC failure (high background): plate:{plate} well:{well}")
-            failures.append({"well": well, "plate": plate, "value": val})
+            failures.append({"well": well, "plate": plate, "value": val, "index": idx})
     return failures
