@@ -46,7 +46,9 @@ def test_result_sanity():
         elif isinstance(expected_value, (int, float)):
             assert abs(expected_value - obtained_value) < epsilon
         else:
-            raise ValueError(f"unexpected type in expected_values {type(expected_value)}")
+            raise ValueError(
+                f"unexpected type in expected_values {type(expected_value)}"
+            )
 
 
 def teardown_module():
@@ -55,3 +57,6 @@ def teardown_module():
     full_path = os.path.join(THIS_DIR, rel_path)
     if os.path.isdir(full_path):
         shutil.rmtree(full_path)
+    results_file_path = os.path.join(THIS_DIR, "results.json")
+    if os.path.exists(results_file_path):
+        os.remove(results_file_path)
