@@ -10,7 +10,7 @@ def exp_decay(x, a, b, c):
     return a * np.exp(-b * x) + c
 
 
-def find_intersect_on_curve(x_min, x_max, func, params, intersect=50):
+def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     """
     Really hacky way of finding intersect of two curves,
     used for finding dilution where percentage infection is 50%.
@@ -18,18 +18,7 @@ def find_intersect_on_curve(x_min, x_max, func, params, intersect=50):
     TODO: solve this mathematically
     """
     x = np.linspace(x_min, x_max, 1000)
-    curve = func(x, *params)
     line = np.full(x.shape, intersect)
-    idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
-    if len(idx) > 1:
-        print(f"Found more than 1 intersect. len = {len(idx)}")
-    return x[idx], curve[idx]
-
-
-def find_intersect_on_curve_polynomial(x_min, x_max, poly_fit, intersect=50):
-    x = np.linspace(x_min, x_max, 1000)
-    line = np.full(x.shape, intersect)
-    curve = poly_fit(x)
     idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
     if len(idx) > 1:
         print(f"Found more than 1 intersect. len = {len(idx)}")
@@ -93,6 +82,7 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
         group.sort_values("Dilution", inplace=True)
         x = group["Dilution"].values
         x_min, x_max = x.min(), x.max()
+        x_interpolated = np.linspace(x_min, x_max, 1000)
         y = group["Percentage Infected"].values
         if min(y) > weak_threshold:
             # if y never crosses below ec threshold
@@ -112,8 +102,9 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
                 model_params = None
             if model_params is not None:
                 # model successfully fit
+                exp_curve = exp_decay(x_interpolated, *model_params)
                 intersect_x, intersect_y = find_intersect_on_curve(
-                    x_min, x_max, exp_decay, model_params
+                    x_min, x_max, exp_curve
                 )
                 try:
                     result = 1 / intersect_x[0]
@@ -122,9 +113,10 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
             else:
                 # model failed to fit
                 poly_fit = polynomial_model(x, y)
+                poly_curve = poly_fit(x_interpolated)
                 result = "Failed to fit model"
-                intersect_x, intersect_y = find_intersect_on_curve_polynomial(
-                    x_min, x_max, poly_fit
+                intersect_x, intersect_y = find_intersect_on_curve(
+                    x_min, x_max, poly_curve
                 )
                 try:
                     result = 1 / intersect_x[0]
