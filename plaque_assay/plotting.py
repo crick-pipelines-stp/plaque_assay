@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -5,6 +7,8 @@ from . import stats
 
 
 def test_plot(df):
+    if not os.path.isdir("../output"):
+        os.makedirs("../output")
     for name, group in df.groupby("Well"):
         plt.figure(figsize=[10, 6])
         group = group.copy()
