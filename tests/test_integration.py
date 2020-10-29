@@ -17,14 +17,41 @@ def setup_module():
         shutil.copytree(DATA_DIR, full_path)
 
 
+def test_main():
+    """test main function simply runs without error"""
+    results = main.main()
+    assert isinstance(results, dict)
+
+
+def test_result_sanity():
+    """
+    Want to determine that our results are sensible for
+    a subset of wells.
+    This will give a large margin-of-error and is **not** a
+    test of reproducibility.
+    """
+    epsilon = 50
+    results = main.main()
+    expected_results = {
+        "A01": "no inhibition",
+        "A02": "complete inhibition",
+        "C03": 195,
+        "C11": 264,
+        "E07": 55,
+    }
+    for well, expected_value in expected_results.items():
+        obtained_value = results["results"][well]
+        if isinstance(expected_value, str):
+            assert obtained_value == expected_value
+        elif isinstance(expected_value, (int, float)):
+            assert abs(expected_value - obtained_value) < epsilon
+        else:
+            raise ValueError(f"unexpected type in expected_values {type(expected_value)}")
+
+
 def teardown_module():
     """remove data_dir and any output files"""
     rel_path = "../data"
     full_path = os.path.join(THIS_DIR, rel_path)
     if os.path.isdir(full_path):
         shutil.rmtree(full_path)
-
-
-def test_main():
-    results = main.main()
-    assert isinstance(results, dict)
