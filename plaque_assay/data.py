@@ -11,7 +11,8 @@ from . import utils
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-DATA_DIR = os.path.abspath("../data/RuthExpt20201014")
+DATA_DIR_14 = os.path.abspath(os.path.join(THIS_DIR, "../data/RuthExpt20201014"))
+DATA_DIR_19 = os.path.abspath(os.path.join(THIS_DIR, "../data/RuthExpt20201019"))
 
 # NOTE: this is temporary until the barcodes are standardised
 plate_mapping = {17: 1 / 40, 19: 1 / 160, 21: 1 / 640, 23: 1 / 2560}
@@ -20,7 +21,7 @@ VIRUS_ONLY_WELLS = ("A12", "B12", "C12")
 NO_VIRUS_WELLS = ("F12", "G12", "H12")
 
 
-def read_data_14(data_dir=DATA_DIR):
+def read_data_14(data_dir=DATA_DIR_14):
     """docstring"""
     # don't yet know how plates will be barcoded to identify the dilution series
     # for now just hard-code this information
@@ -48,7 +49,7 @@ def read_data_14(data_dir=DATA_DIR):
 # --- END TEMP STUFF ---#
 
 
-def read_data_19(data_dir="../data/RuthExpt20201019"):
+def read_data_19(data_dir=DATA_DIR_19):
     """
     read in data from the 19 experiment, not yet using standardised barcodes
     so this is call hard-coded and custom for each experimental run
