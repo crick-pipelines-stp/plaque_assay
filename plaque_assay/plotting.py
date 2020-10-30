@@ -25,8 +25,9 @@ def test_plot(df):
         if model_params is not None:
             x_min = group["Dilution"].min()
             x_max = group["Dilution"].max()
+            curve =stats.exp_decay(x, *model_params)
             intersect_x, intersect_y = stats.find_intersect_on_curve(
-                x_min, x_max, stats.exp_decay, model_params
+                x_min, x_max, curve
             )
             plt.plot(
                 1 / x,
