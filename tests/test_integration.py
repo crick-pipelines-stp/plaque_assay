@@ -30,12 +30,12 @@ def test_result_sanity():
     This will give a large margin-of-error and is **not** a
     test of reproducibility.
     """
-    epsilon = 50
+    epsilon = 100
     results = main.main()
     expected_results = {
         "A01": "no inhibition",
         "A02": "complete inhibition",
-        "C03": 195,
+        "C03": 220,
         "C11": 264,
         "E07": 55,
     }

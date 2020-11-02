@@ -4,12 +4,8 @@ import scipy.optimize
 from . import data
 
 
-def exp_decay(x, a, b, c):
-    """exponential decay function"""
-    return a * np.exp(-b * x) + c
-
-
 def dr_3(x, top, bottom, ec50):
+    """3 parameter dose response curve"""
     return bottom + x * (top - bottom) / (ec50 + x)
 
 
@@ -24,7 +20,7 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     line = np.full(x.shape, intersect)
     idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
     if len(idx) > 1:
-        print(f"Found more than 1 intersect. len = {len(idx)}")
+        raise RuntimeError(f"Found more than 1 intersect. len = {len(idx)}")
     return x[idx], curve[idx]
 
 
@@ -33,8 +29,11 @@ def non_linear_model(x, y):
     fit non-linear least squares to the data
     """
     # initial guess at sensible parameters
-    p0 = [100, 20, 30]
-    popt, pcov = scipy.optimize.curve_fit(dr_3, x, y, p0=p0, method="lm", maxfev=600,)
+    p0 = [0, 100, 0]
+    bounds = ((-20, -20, -10), (120, 120, 10))
+    popt, pcov = scipy.optimize.curve_fit(
+        dr_3, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500,
+    )
     return popt, pcov
 
 
@@ -83,13 +82,13 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
                 model_params = None
             if model_params is not None:
                 # model successfully fit
-                exp_curve = dr_3(x_interpolated, *model_params)
+                dr_curve = dr_3(x_interpolated, *model_params)
                 intersect_x, intersect_y = find_intersect_on_curve(
-                    x_min, x_max, exp_curve
+                    x_min, x_max, dr_curve
                 )
                 try:
                     result = 1 / intersect_x[0]
-                except IndexError:
+                except (IndexError, RuntimeError):
                     result = "Failed to fit model"
         output[name] = result
     return output

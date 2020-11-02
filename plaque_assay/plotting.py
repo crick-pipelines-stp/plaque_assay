@@ -26,19 +26,24 @@ def test_plot(df):
             x_min = group["Dilution"].min()
             x_max = group["Dilution"].max()
             curve = stats.dr_3(x, *model_params)
-            intersect_x, intersect_y = stats.find_intersect_on_curve(
-                x_min, x_max, curve
-            )
+            top, bottom, ec50 = model_params
+            print(f"{name}: [{top}, {bottom}, {ec50}]")
             plt.plot(
                 1 / x,
                 stats.dr_3(x, *model_params),
                 linestyle="--",
                 label="3 param dose-response",
             )
-            plt.plot(
-                1 / intersect_x, intersect_y, marker="P", color="black", zorder=999
-            )
             plt.legend(loc="upper left")
+            try:
+                intersect_x, intersect_y = stats.find_intersect_on_curve(
+                    x_min, x_max, curve
+                )
+                plt.plot(
+                    1 / intersect_x, intersect_y, marker="P", color="black", zorder=999
+                )
+            except RuntimeError:
+                pass
         plt.xscale("log")
         plt.grid(linestyle=":")
         plt.ylim([0, 110])
