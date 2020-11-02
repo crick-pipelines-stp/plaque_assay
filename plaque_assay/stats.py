@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.polynomial.polynomial as poly
 import scipy.optimize
 
 from . import data
@@ -8,6 +7,10 @@ from . import data
 def exp_decay(x, a, b, c):
     """exponential decay function"""
     return a * np.exp(-b * x) + c
+
+
+def dr_3(x, top, bottom, ec50):
+    return bottom + x * (top - bottom) / (ec50 + x)
 
 
 def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
@@ -30,31 +33,9 @@ def non_linear_model(x, y):
     fit non-linear least squares to the data
     """
     # initial guess at sensible parameters
-    p0 = [100, 100, 0]
-    popt, pcov = scipy.optimize.curve_fit(
-        exp_decay, x, y, p0=p0, method="lm", maxfev=1000,
-    )
+    p0 = [100, 20, 30]
+    popt, pcov = scipy.optimize.curve_fit(dr_3, x, y, p0=p0, method="lm", maxfev=600,)
     return popt, pcov
-
-
-def polynomial_model(x, y, d=2):
-    """
-    fit polynomial model, return function which can be used on new data.
-    """
-    popt = poly.polyfit(x, y, d)
-    return poly.Polynomial(popt)
-
-
-def confidence_bands(func, model_params, model_cov, x=None):
-    """
-    returns upper and lower confidence bands
-    """
-    sigma = np.sqrt(np.diagonal(model_cov))
-    if x is None:
-        x = np.linspace(40, 2560, 1000)
-    bound_upper = func(x, *(model_params + sigma))
-    bound_lower = func(x, *(model_params - sigma))
-    return bound_lower, bound_upper
 
 
 def calc_results_simple(df, threshold=50):
@@ -102,21 +83,9 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
                 model_params = None
             if model_params is not None:
                 # model successfully fit
-                exp_curve = exp_decay(x_interpolated, *model_params)
+                exp_curve = dr_3(x_interpolated, *model_params)
                 intersect_x, intersect_y = find_intersect_on_curve(
                     x_min, x_max, exp_curve
-                )
-                try:
-                    result = 1 / intersect_x[0]
-                except IndexError:
-                    result = "Failed to fit model"
-            else:
-                # model failed to fit
-                poly_fit = polynomial_model(x, y)
-                poly_curve = poly_fit(x_interpolated)
-                result = "Failed to fit model"
-                intersect_x, intersect_y = find_intersect_on_curve(
-                    x_min, x_max, poly_curve
                 )
                 try:
                     result = 1 / intersect_x[0]
