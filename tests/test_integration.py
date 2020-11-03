@@ -57,6 +57,6 @@ def teardown_module():
     full_path = os.path.join(THIS_DIR, rel_path)
     if os.path.isdir(full_path):
         shutil.rmtree(full_path)
-    results_file_path = os.path.join(THIS_DIR, "results.json")
+    results_file_path = os.path.join(THIS_DIR, "../results.json")
     if os.path.exists(results_file_path):
         os.remove(results_file_path)
