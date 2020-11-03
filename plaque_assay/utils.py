@@ -2,6 +2,27 @@ import os
 import string
 
 
+RESULT_TO_INT = {
+    "failed to fit model": -999,
+    "no inhibition": -600,
+    "weak inhibition": -400,
+    "complete inhibition": -200,
+}
+
+
+INT_TO_RESULT = {integer: result for result, integer in RESULT_TO_INT.items()}
+
+
+def result_to_int(result):
+    """convert result string to an integer"""
+    return RESULT_TO_INT[result]
+
+
+def int_to_result(integer):
+    """convert result integer to a string"""
+    return INT_TO_RESULT[integer]
+
+
 def row_col_to_well(row, col):
     """convert row-column indices (1-indexed) to well labels"""
     row_str = string.ascii_uppercase[row - 1]

@@ -4,6 +4,7 @@ from plaque_assay import data
 from plaque_assay import qc
 from plaque_assay import stats
 from plaque_assay import plotting
+from plaque_assay import utils
 
 
 def main(plot=False):
@@ -25,6 +26,7 @@ def main(plot=False):
                 "failed_wells": failures.failed_wells,
             },
         },
+        "result_mapping": utils.INT_TO_RESULT,
         "results": results,
     }
     with open("results.json", "w") as f:

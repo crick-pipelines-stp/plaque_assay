@@ -2,6 +2,7 @@ import os
 import shutil
 
 from plaque_assay import main
+from plaque_assay import utils
 
 
 THIS_FILE = os.path.abspath(__file__)
@@ -33,8 +34,8 @@ def test_result_sanity():
     epsilon = 100
     results = main.main()
     expected_results = {
-        "A01": "no inhibition",
-        "A02": "complete inhibition",
+        "A01": utils.result_to_int("no inhibition"),
+        "A02": utils.result_to_int("complete inhibition"),
         "C03": 220,
         "C11": 264,
         "E07": 55,

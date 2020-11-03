@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize
 
 from . import data
+from . import utils
 
 
 def dr_3(x, top, bottom, ec50):
@@ -66,13 +67,13 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
         y = group["Percentage Infected"].values
         if min(y) > weak_threshold:
             # if y never crosses below ec threshold
-            result = "no inhibition"
+            result = utils.result_to_int("no inhibition")
         elif min(y) < weak_threshold and min(y) > threshold:
             # if 1/40 dilution reaches 60% percent infected
-            result = "weak inhibition"
+            result = utils.result_to_int("weak inhibition")
         elif y[0] <= threshold:
             # if already starts below ec threshold
-            result = "complete inhibition"
+            result = utils.result_to_int("complete inhibition")
         else:
             # fit non-linear_model
             try:
@@ -89,7 +90,7 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
                 try:
                     result = 1 / intersect_x[0]
                 except (IndexError, RuntimeError):
-                    result = "Failed to fit model"
+                    result = utils.result_to_int("failed to fit model")
         output[name] = result
     return output
 
