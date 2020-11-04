@@ -72,19 +72,29 @@ def calc_heuristics_dilutions(group, threshold, weak_threshold):
         if avg[2560] <= threshold and avg[2560] <= threshold:
             result = "complete inhibition"
     except KeyError:
-        if avg[640] <= threshold and avg[640] <= threshold:
-            result = "complete inhibition"
-    finally:
-        pass
+        # missing this dilution, possibly removed due to high-background
+        try:
+            # try the next dilution
+            if avg[640] <= threshold and avg[640] <= threshold:
+                result = "complete inhibition"
+        except KeyError:
+            # if this returns a KeyError aswell we're missing 2 dilutions
+            # so we can't get anthing meaningful from the model
+            result = "failed to fit model"
     # check for weak inhibition
     try:
         if avg[40] > threshold and avg[40] < weak_threshold:
             result = "weak inhibition"
     except KeyError:
-        if avg[160] > threshold and avg[160] < weak_threshold:
-            result = "weak inhibition"
-    else:
-        pass
+        # missing this dilution, possibly removed due to high-background
+        try:
+            # try the next dilution
+            if avg[160] > threshold and avg[160] < weak_threshold:
+                result = "weak inhibition"
+        except KeyError:
+            # if this returns a KeyError aswell we're missing 2 dilutions
+            # so we can't get anthing meaningful from the model
+            result = "failed to fit model"
     # check for no inhibition
     if all(avg.values > weak_threshold):
         result = "no inhibition"
