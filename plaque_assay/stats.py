@@ -25,7 +25,7 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     return x[idx], curve[idx]
 
 
-def non_linear_model(x, y):
+def non_linear_model(x, y, func=dr_3):
     """
     fit non-linear least squares to the data
     """
@@ -33,7 +33,7 @@ def non_linear_model(x, y):
     p0 = [0, 100, 0]
     bounds = ((-20, -20, -10), (120, 120, 10))
     popt, pcov = scipy.optimize.curve_fit(
-        dr_3, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500,
+        func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500,
     )
     return popt, pcov
 

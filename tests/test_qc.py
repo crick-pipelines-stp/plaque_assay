@@ -8,7 +8,7 @@ from plaque_assay import utils
 
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(THIS_DIR, "test_data_files")
+DATA_DIR = os.path.join(THIS_DIR, "test_data_files/RuthExpt20201019")
 
 
 def load_data():

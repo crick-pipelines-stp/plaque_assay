@@ -7,8 +7,11 @@ from plaque_assay import plotting
 from plaque_assay import utils
 
 
-def main(plot=False):
-    df = data.read_data_19()
+def main(dataset=19, plot=False):
+    if dataset == 19:
+        df = data.read_data_19()
+    elif dataset == 21:
+        df = data.read_data_21()
     failures = qc.detect_low_cells_image_region_area(df, 0.7)
     df = stats.subtract_background(df)
     df = stats.calc_percentage_infected(df)
@@ -37,4 +40,4 @@ def main(plot=False):
 
 
 if __name__ == "__main__":
-    main(plot=True)
+    main(21, plot=True)
