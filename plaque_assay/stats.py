@@ -56,7 +56,77 @@ def calc_results_simple(df, threshold=50):
     return output
 
 
+def calc_heuristics_dilutions(group, threshold, weak_threshold):
+    """
+    simple heuristics based on the values without model fitting
+    """
+    result = None
+    avg = group.groupby("Dilution")["Percentage Infected"].mean()
+    # convert dilutions into 40 -> 2560
+    avg.index = 1 / avg.index
+    avg.index = avg.index.astype(int)
+    # for complete inhibition
+    if all(avg.values <= threshold):
+        result = "complete inhibition"
+    try:
+        if avg[2560] <= threshold and avg[2560] <= threshold:
+            result = "complete inhibition"
+    except KeyError:
+        if avg[640] <= threshold and avg[640] <= threshold:
+            result = "complete inhibition"
+    finally:
+        pass
+    # check for weak inhibition
+    try:
+        if avg[40] > threshold and avg[40] < weak_threshold:
+            result = "weak inhibition"
+    except KeyError:
+        if avg[160] > threshold and avg[160] < weak_threshold:
+            result = "weak inhibition"
+    else:
+        pass
+    # check for no inhibition
+    if all(avg.values > weak_threshold):
+        result = "no inhibition"
+    if result:
+        return utils.result_to_int(result)
+
+
+def calc_heuristics_curve(x, y, threshold, weak_threshold):
+    """
+    heuristics based on the model fit where we cannot calculate the intercept
+    at the threshold
+    """
+    result = None
+    # TODO: look for sharp changes in the curve shape indicating a bad fit
+    #      - hampel outlier test?
+    #      - rate of change?
+    outliers = hampel(y, 5)
+    if outliers:
+        result = "failed to fit model"
+    # look for times when the curve doesn't reach below threshold but
+    # drops below weak_threshold indicated "weak inhibition"
+    if min(y) > threshold and min(y) < weak_threshold:
+        # determine minimum is on the side we would expect (1:40)
+        idx_min = np.argmin(y)
+        # checking for greater than as the actual values are inverted because
+        # we're using 1/dilution
+        if idx_min > len(x) / 4:
+            result = "weak inhibition"
+        else:
+            result = "failed to fit model"
+    if min(y) > weak_threshold:
+        result = "no inhibition"
+    if result:
+        return utils.result_to_int(result)
+
+
 def calc_results_model(df, threshold=50, weak_threshold=60):
+    """
+    Try simple heuristics first without model fitting.
+    Once a model is fitted try heuristics based on the fitted curve.
+    Then calculate the value based on the intercept where the curve = threshold.
+    """
     output = dict()
     for name, group in df.groupby("Well"):
         group = group.copy()
@@ -65,15 +135,10 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
         x_min, x_max = x.min(), x.max()
         x_interpolated = np.linspace(x_min, x_max, 1000)
         y = group["Percentage Infected"].values
-        if min(y) > weak_threshold:
-            # if y never crosses below ec threshold
-            result = utils.result_to_int("no inhibition")
-        elif min(y) < weak_threshold and min(y) > threshold:
-            # if 1/40 dilution reaches 60% percent infected
-            result = utils.result_to_int("weak inhibition")
-        elif y[0] <= threshold:
-            # if already starts below ec threshold
-            result = utils.result_to_int("complete inhibition")
+        heuristic = calc_heuristics_dilutions(group, threshold, weak_threshold)
+        if heuristic is not None:
+            print(f"{name}: (simple heuristic) {utils.int_to_result(heuristic)}")
+            result = heuristic
         else:
             # fit non-linear_model
             try:
@@ -84,15 +149,45 @@ def calc_results_model(df, threshold=50, weak_threshold=60):
             if model_params is not None:
                 # model successfully fit
                 dr_curve = dr_3(x_interpolated, *model_params)
-                intersect_x, intersect_y = find_intersect_on_curve(
-                    x_min, x_max, dr_curve
+                curve_heuristics = calc_heuristics_curve(
+                    x_interpolated, dr_curve, threshold, weak_threshold
                 )
-                try:
-                    result = 1 / intersect_x[0]
-                except (IndexError, RuntimeError):
-                    result = utils.result_to_int("failed to fit model")
+                if curve_heuristics is not None:
+                    print(
+                        f"{name}: (curve heuristic) {utils.int_to_result(curve_heuristics)}"
+                    )
+                    result = curve_heuristics
+                else:
+                    try:
+                        intersect_x, intersect_y = find_intersect_on_curve(
+                            x_min, x_max, dr_curve
+                        )
+                        result = 1 / intersect_x[0]
+                        print(f"{name}: (curve intersect) {result}")
+                    except (IndexError, RuntimeError):
+                        result = utils.result_to_int("failed to fit model")
         output[name] = result
     return output
+
+
+def hampel(x, k, t0=3):
+    """
+    adapted from hampel function in R package pracma
+        x: 1-d numpy array of numbers to be filtered
+        k: number of items in window/2 (# forward and backward wanted to capture in median filter)
+        t0: number of standard deviations to use; 3 is default
+    """
+    n = len(x)
+    L = 1.4826
+    indices = []
+    for i in range((k + 1), (n - k)):
+        if np.isnan(x[(i - k) : (i + k + 1)]).all():
+            continue
+        x0 = np.nanmedian(x[(i - k) : (i + k + 1)])
+        S0 = L * np.nanmedian(np.abs(x[(i - k) : (i + k + 1)] - x0))
+        if np.abs(x[i] - x0) > t0 * S0:
+            indices.append(i)
+    return indices
 
 
 def simple_threshold(x, y, ec):
