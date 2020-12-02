@@ -10,6 +10,7 @@ THIS_DIR = os.path.dirname(THIS_FILE)
 DATA_DIR = os.path.join(THIS_DIR, "test_data_files")
 DATA_DIR_19 = os.path.join(THIS_DIR, "test_data_files/RuthExpt20201019")
 DATA_DIR_21 = os.path.join(THIS_DIR, "test_data_files/RuthExpt20201021")
+DATA_DIR_20201106 = os.path.join(THIS_DIR, "test_data_files/RuthExpt20201106")
 
 
 def setup_module():
@@ -22,6 +23,10 @@ def setup_module():
     full_path = os.path.join(THIS_DIR, rel_path)
     if not os.path.isdir(full_path):
         shutil.copytree(DATA_DIR_21, full_path)
+    rel_path = "../data/RuthExpt20201106"
+    full_path = os.path.join(THIS_DIR, rel_path)
+    if not os.path.isdir(full_path):
+        shutil.copytree(DATA_DIR_20201106, full_path)
 
 
 def test_main_dataset_19():
