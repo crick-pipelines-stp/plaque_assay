@@ -33,3 +33,9 @@ def get_plate_num(plate_name):
     """get plate number from path"""
     basename = os.path.basename(plate_name)
     return int(basename.split("_")[0])
+
+
+def get_dilution_from_barcode(plate_name):
+    """get dilution integer [1, 2, 3, 4] from full plate path"""
+    basename = os.path.basename(plate_name)
+    return int(basename[1])

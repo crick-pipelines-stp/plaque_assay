@@ -15,3 +15,12 @@ def test_get_plate_num():
     ]
     for test_string, expected_answer in tests:
         assert utils.get_plate_num(test_string) == expected_answer
+
+
+def test_get_dilution_from_barcode():
+    barcode = "A110000001__2020_00_00T00_00_00-Measurement 1"
+    assert utils.get_dilution_from_barcode(barcode) == 1
+    barcode = "/some/other/paths/A110000001__2020_00_00T00_00_00-Measurement 1"
+    assert utils.get_dilution_from_barcode(barcode) == 1
+    barcode = "/some/other/paths/A410000001__2020_00_00T00_00_00-Measurement 1"
+    assert utils.get_dilution_from_barcode(barcode) == 4

@@ -4,4 +4,6 @@ output/
 .vscode
 *.config
 __pycache__
+build/
+dist/
 *.egg-info

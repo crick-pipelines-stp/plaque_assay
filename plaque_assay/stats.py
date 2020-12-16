@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize
 
-from . import data
+from . import consts
 from . import utils
 
 
@@ -33,27 +33,9 @@ def non_linear_model(x, y, func=dr_3):
     p0 = [0, 100, 0]
     bounds = ((-20, -20, -10), (120, 120, 10))
     popt, pcov = scipy.optimize.curve_fit(
-        func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500,
+        func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )
     return popt, pcov
-
-
-def calc_results_simple(df, threshold=50):
-    """
-    simple threshold
-    for each well
-      iterate through dilutions
-      first dilution where "Percentage infected" > 0.5
-    """
-    output = dict()
-    for name, group in df.groupby("Well"):
-        group = group.copy()
-        group.sort_values("Dilution", inplace=True)
-        x = group["Dilution"].values
-        y = group["Percentage Infected"].values
-        result = simple_threshold(x, y, threshold)
-        output[name] = result
-    return output
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
@@ -108,9 +90,7 @@ def calc_heuristics_curve(x, y, threshold, weak_threshold):
     at the threshold
     """
     result = None
-    # TODO: look for sharp changes in the curve shape indicating a bad fit
-    #      - hampel outlier test?
-    #      - rate of change?
+    # look for sharp changes in the curve shape indicating a bad fit
     outliers = hampel(y, 5)
     if outliers:
         result = "failed to fit model"
@@ -131,53 +111,47 @@ def calc_heuristics_curve(x, y, threshold, weak_threshold):
         return utils.result_to_int(result)
 
 
-def calc_results_model(df, threshold=50, weak_threshold=60):
+def calc_results_model(name, df, threshold=50, weak_threshold=60):
     """
     Try simple heuristics first without model fitting.
     Once a model is fitted try heuristics based on the fitted curve.
     Then calculate the value based on the intercept where the curve = threshold.
     """
-    output = dict()
-    for name, group in df.groupby("Well"):
-        group = group.copy()
-        group.sort_values("Dilution", inplace=True)
-        x = group["Dilution"].values
-        x_min, x_max = x.min(), x.max()
-        x_interpolated = np.linspace(x_min, x_max, 1000)
-        y = group["Percentage Infected"].values
-        heuristic = calc_heuristics_dilutions(group, threshold, weak_threshold)
-        if heuristic is not None:
-            print(f"{name}: (simple heuristic) {utils.int_to_result(heuristic)}")
-            result = heuristic
-        else:
-            # fit non-linear_model
-            try:
-                model_params, _ = non_linear_model(x, y)
-            except RuntimeError:
-                print(f"Model fit failure: {name}")
-                model_params = None
-            if model_params is not None:
-                # model successfully fit
-                dr_curve = dr_3(x_interpolated, *model_params)
-                curve_heuristics = calc_heuristics_curve(
-                    x_interpolated, dr_curve, threshold, weak_threshold
-                )
-                if curve_heuristics is not None:
-                    print(
-                        f"{name}: (curve heuristic) {utils.int_to_result(curve_heuristics)}"
+    df = df.sort_values("Dilution")
+    x = df["Dilution"].values
+    x_min, x_max = x.min(), x.max()
+    x_interpolated = np.linspace(x_min, x_max, 1000)
+    y = df["Percentage Infected"].values
+    model_params = None
+    heuristic = calc_heuristics_dilutions(df, threshold, weak_threshold)
+    if heuristic is not None:
+        result = heuristic
+        fit_method = "heuristic"
+    else:
+        # fit non-linear_model
+        try:
+            model_params, _ = non_linear_model(x, y)
+        except RuntimeError:
+            model_params = None
+            result = utils.result_to_int("failed to fit model")
+        fit_method = "model fit"
+        if model_params is not None:
+            # model successfully fit
+            dr_curve = dr_3(x_interpolated, *model_params)
+            curve_heuristics = calc_heuristics_curve(
+                x_interpolated, dr_curve, threshold, weak_threshold
+            )
+            if curve_heuristics is not None:
+                result = curve_heuristics
+            else:
+                try:
+                    intersect_x, intersect_y = find_intersect_on_curve(
+                        x_min, x_max, dr_curve
                     )
-                    result = curve_heuristics
-                else:
-                    try:
-                        intersect_x, intersect_y = find_intersect_on_curve(
-                            x_min, x_max, dr_curve
-                        )
-                        result = 1 / intersect_x[0]
-                        print(f"{name}: (curve intersect) {result}")
-                    except (IndexError, RuntimeError):
-                        result = utils.result_to_int("failed to fit model")
-        output[name] = result
-    return output
+                    result = 1 / intersect_x[0]
+                except (IndexError, RuntimeError):
+                    result = utils.result_to_int("failed to fit model")
+    return fit_method, result, model_params
 
 
 def hampel(x, k, t0=3):
@@ -200,28 +174,15 @@ def hampel(x, k, t0=3):
     return indices
 
 
-def simple_threshold(x, y, ec):
-    """
-    A *really* simple EC50 sort of thing.
-    Determine first dilution value at which 'Percentage Infected' is < 50%
-    """
-    if min(y) > ec:
-        # if y never crosses below ec threshold
-        return "no inhibition"
-    elif y[0] <= ec:
-        # if already starts below ec threshold
-        return "complete inhibition"
-    else:
-        # return first dilution at which y crosses below threshold
-        return x[np.argmax(y <= ec)]
-
-
 def calc_percentage_infected(df):
     colname = "Background subtracted Plaque Area"
-    virus_only_median = df[df["Well"].isin(data.VIRUS_ONLY_WELLS)][colname].median()
-    # TODO: if virus_only_median < 0.3, indicate plate fail
-    if virus_only_median < 0.3:
-        print("plate fail: virus_only_median < 0.3")
+    virus_only_median = df[df["Well"].isin(consts.VIRUS_ONLY_WELLS)][colname].median()
+    # TODO: if virus_only_median < 0.3 or < 0.7, indicate plate fail
+    #       this needs to be done on a plate-by-plate basis
+    if virus_only_median < 0.3 or virus_only_median > 0.7:
+        print(
+            "plate fail: infection outside optimal range (virus_only_median not between 0.3, 0.7)"
+        )
     df["Percentage Infected"] = (df[colname] / virus_only_median) * 100
     return df
 
@@ -230,7 +191,7 @@ def subtract_background(
     df,
     colname="Normalised Plaque area",
     new_colname="Background subtracted Plaque Area",
-    no_virus_wells=data.NO_VIRUS_WELLS,
+    no_virus_wells=consts.NO_VIRUS_WELLS,
 ):
     background = df[df["Well"].isin(no_virus_wells)][colname].median()
     df[new_colname] = df[colname] - background
