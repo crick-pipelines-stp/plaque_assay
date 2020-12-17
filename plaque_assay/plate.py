@@ -2,6 +2,8 @@
 module docstring
 """
 
+import os
+
 import pandas as pd
 
 from . import failure
@@ -124,4 +126,5 @@ class Plate:
         save csv of the normalised data
         """
         norm_data = self.get_normalised_data()
-        norm_data.to_csv(f"{self.barcode}.csv", index=False)
+        save_path = os.path.join(output_dir, f"{self.barcode}.csv")
+        norm_data.to_csv(save_path, index=False)
