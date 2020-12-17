@@ -67,7 +67,7 @@ class Plate:
         feature = "Background Subtracted Plaque Area"
         virus_only_bool = self.df.Well.isin(VIRUS_ONLY_WELLS)
         infection = self.df[virus_only_bool][feature].median()
-        if infection < 0.3 or infection > 0.7:
+        if infection < 0.15 or infection > 0.8:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.InfectionPlateFailure(
