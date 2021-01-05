@@ -174,30 +174,6 @@ def hampel(x, k, t0=3):
     return indices
 
 
-def calc_percentage_infected(df):
-    colname = "Background subtracted Plaque Area"
-    virus_only_median = df[df["Well"].isin(consts.VIRUS_ONLY_WELLS)][colname].median()
-    # TODO: if virus_only_median < 0.3 or < 0.7, indicate plate fail
-    #       this needs to be done on a plate-by-plate basis
-    if virus_only_median < 0.3 or virus_only_median > 0.7:
-        print(
-            "plate fail: infection outside optimal range (virus_only_median not between 0.3, 0.7)"
-        )
-    df["Percentage Infected"] = (df[colname] / virus_only_median) * 100
-    return df
-
-
-def subtract_background(
-    df,
-    colname="Normalised Plaque area",
-    new_colname="Background subtracted Plaque Area",
-    no_virus_wells=consts.NO_VIRUS_WELLS,
-):
-    background = df[df["Well"].isin(no_virus_wells)][colname].median()
-    df[new_colname] = df[colname] - background
-    return df
-
-
 def calc_median_all_plates(df):
     """
     calculate the median of "Cells - Image Region Area - Mean per Well"
