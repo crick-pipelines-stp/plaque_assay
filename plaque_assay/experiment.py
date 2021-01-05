@@ -18,7 +18,7 @@ class Experiment:
     def __init__(self, df):
         self.df = self.subtract_plaque_area_background(df)
         self.experiment_name = df["Plate_barcode"].values[0][3:]
-        self.plate_store = {name: Plate(df) for name, df in df.groupby("PlateNum")}
+        self.plate_store = {name: Plate(df) for name, df in df.groupby("Plate_barcode")}
         self.df = pd.concat([plate.df for plate in self.plate_store.values()])
         self.sample_store = self.make_samples()
 
@@ -66,7 +66,8 @@ class Experiment:
         for plate_name, plate_object in self.plates:
             # plate failures
             if plate_object.plate_failed:
-                failure_dict["plate_failures"][plate_name] = plate_object.plate_failures
+                plate_failures_as_dict = [i.to_dict() for i in plate_object.plate_failures]
+                failure_dict["plate_failures"][plate_name] = plate_failures_as_dict
             # well failures
             # convert WellFailure objects to dictionaries
             well_failures_as_dict = [i.to_dict() for i in plate_object.well_failures]
