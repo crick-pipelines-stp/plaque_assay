@@ -24,13 +24,13 @@ class PlateFailure:
 
 
 class InfectionPlateFailure(PlateFailure):
-    def __init__(self, reason, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.reason = "plate fail due to infection outside optimal range"
 
 
 class CellAreaPlateFailure(PlateFailure):
-    def __init__(self, reason, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.reason = "cell-image-region-area outside expected limits"
 
