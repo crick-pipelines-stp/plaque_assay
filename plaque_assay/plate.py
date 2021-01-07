@@ -47,8 +47,7 @@ class Plate:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.CellAreaPlateFailure(
-                    plate=self.barcode,
-                    wells=control_outliers["Well"].values.to_list(),
+                    plate=self.barcode, wells=control_outliers["Well"].values.to_list()
                 )
             )
         if outliers.shape[0]:
@@ -70,8 +69,7 @@ class Plate:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.InfectionPlateFailure(
-                    plate=self.barcode,
-                    wells=VIRUS_ONLY_WELLS,
+                    plate=self.barcode, wells=VIRUS_ONLY_WELLS
                 )
             )
         self.df["Percentage Infected"] = self.df[feature] / infection * 100

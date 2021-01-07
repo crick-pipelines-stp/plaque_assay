@@ -49,10 +49,7 @@ def read_indexfiles_from_list(plate_list):
     }
     dataframes = []
     for path, plate_num in plate_name_dict.items():
-        df = pd.read_csv(
-            os.path.join(path, "indexfile.txt"),
-            sep="\t"
-        )
+        df = pd.read_csv(os.path.join(path, "indexfile.txt"), sep="\t")
         plate_barcode = path.split(os.sep)[-1].split("__")[0]
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)

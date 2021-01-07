@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.optimize
 
-from . import consts
 from . import utils
 
 

@@ -33,12 +33,12 @@ def main():
     # save concatenated "raw" data
     dataset.to_csv(
         os.path.join(args.output, f"plateResults_{experiment.experiment_name}.csv"),
-        index=False
+        index=False,
     )
     indexfiles = data.read_indexfiles_from_directory(args.input)
     indexfiles.to_csv(
         os.path.join(args.output, f"indexfiles_{experiment.experiment_name}.csv"),
-        index=False
+        index=False,
     )
     experiment.save_results_as_dataframe(args.output)
     experiment.save_failures_as_dataframe(args.output)
@@ -51,12 +51,11 @@ def run(input_dir, output_dir, plot=True):
     # save concatenated "raw" data
     dataset.to_csv(
         os.path.join(output_dir, f"PlateResults_{experiment.experiment_name}.csv"),
-        index=False
+        index=False,
     )
-    indexfiles = data.read_indexfiles_from_directory(input_dir)
-    indexfiles.to_csv(
+    data.read_indexfiles_from_directory(input_dir).to_csv(
         os.path.join(output_dir, f"indexfile_{experiment.experiment_name}.csv"),
-        index=False
+        index=False,
     )
     experiment.save_results_as_dataframe(output_dir)
     experiment.save_failures_as_dataframe(output_dir)

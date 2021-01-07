@@ -66,7 +66,9 @@ class Experiment:
         for plate_name, plate_object in self.plates:
             # plate failures
             if plate_object.plate_failed:
-                plate_failures_as_dict = [i.to_dict() for i in plate_object.plate_failures]
+                plate_failures_as_dict = [
+                    i.to_dict() for i in plate_object.plate_failures
+                ]
                 failure_dict["plate_failures"][plate_name] = plate_failures_as_dict
             # well failures
             # convert WellFailure objects to dictionaries
@@ -89,7 +91,7 @@ class Experiment:
         # go through plate failures first as have to join multiple wells into a string
         plate_failures = failures_dict["plate_failures"]
         for _, plate_list in plate_failures.items():
-            plate = plate_list[0] # it's a single-element list
+            plate = plate_list[0]  # it's a single-element list
             types.append(plate["type"])
             plates.append(plate["plate"])
             wells.append(";".join(plate["wells"]))
@@ -106,7 +108,7 @@ class Experiment:
                 "failure_type": types,
                 "plate": plates,
                 "well": wells,
-                "failure_reason": reasons
+                "failure_reason": reasons,
             }
         )
         return df
@@ -138,7 +140,7 @@ class Experiment:
 
     def get_results_as_dataframe(self):
         """convert results JSON file to a dataframe"""
-        results_dict  = self.get_results_as_json()
+        results_dict = self.get_results_as_json()
         result_mapping = results_dict["result_mapping"]
         wells = []
         ic50s = []
@@ -154,11 +156,7 @@ class Experiment:
                 # is an ic50 value
                 ic50s.append(value)
                 errors.append(None)
-        df = pd.DataFrame({
-            "well": wells,
-            "ic50": ic50s,
-            "error": errors
-        })
+        df = pd.DataFrame({"well": wells, "ic50": ic50s, "error": errors})
         return df
 
     def save_results_as_dataframe(self, output_dir):
@@ -186,7 +184,9 @@ class Experiment:
                 df = plate_object.get_normalised_data()
                 dataframes.append(df)
             df_concat = pd.concat(dataframes)
-            save_path = os.path.join(output_dir, f"normalised_{self.experiment_name}.csv")
+            save_path = os.path.join(
+                output_dir, f"normalised_{self.experiment_name}.csv"
+            )
             df_concat.to_csv(save_path, index=False)
         else:
             # save as individual dataframe per plate
