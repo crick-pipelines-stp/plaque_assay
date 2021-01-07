@@ -13,7 +13,7 @@ def read_data_from_list(plate_list):
     dataframes = []
     for path, plate_num in plate_name_dict.items():
         df = pd.read_csv(
-            # NOTE: might not always be Evaluation2
+            # NOTE: might not always be Evaluation1
             os.path.join(path, "Evaluation1/PlateResults.txt"),
             skiprows=8,
             sep="\t",
@@ -31,9 +31,38 @@ def read_data_from_list(plate_list):
     return pd.concat(dataframes)
 
 
+def get_plate_list(data_dir):
+    return [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
+
+
 def read_data_from_directory(data_dir):
     """
     read actual barcoded plate directory
     """
-    plate_list = [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
+    plate_list = get_plate_list(data_dir)
     return read_data_from_list(plate_list)
+
+
+def read_indexfiles_from_list(plate_list):
+    plate_name_dict = {
+        os.path.abspath(i): utils.get_dilution_from_barcode(i) for i in plate_list
+    }
+    dataframes = []
+    for path, plate_num in plate_name_dict.items():
+        df = pd.read_csv(
+            os.path.join(path, "indexfile.txt"),
+            sep="\t"
+        )
+        plate_barcode = path.split(os.sep)[-1].split("__")[0]
+        df["Plate_barcode"] = plate_barcode
+        dataframes.append(df)
+    df_concat = pd.concat(dataframes)
+    # remove annoying empty "Unnamed: 16" column
+    to_rm = [col for col in df_concat.columns if col.startswith("Unnamed:")]
+    df_concat.drop(to_rm, axis=1, inplace=True)
+    return df_concat
+
+
+def read_indexfiles_from_directory(data_dir):
+    plate_list = get_plate_list(data_dir)
+    return read_indexfiles_from_list(plate_list)

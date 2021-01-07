@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from plaque_assay.experiment import Experiment
 from plaque_assay import data
@@ -29,9 +30,44 @@ def main():
     args = get_arguments()
     dataset = data.read_data_from_directory(args.input)
     experiment = Experiment(dataset)
-    experiment.save_results(args.output)
-    experiment.save_failures(args.output)
+    # save concatenated "raw" data
+    dataset.to_csv(
+        os.path.join(args.output, f"plateResults_{experiment.experiment_name}.csv"),
+        index=False
+    )
+    indexfiles = data.read_indexfiles_from_directory(args.input)
+    indexfiles.to_csv(
+        os.path.join(args.output, f"indexfiles_{experiment.experiment_name}.csv"),
+        index=False
+    )
+    experiment.save_results_as_dataframe(args.output)
+    experiment.save_failures_as_dataframe(args.output)
     experiment.save_normalised_data(args.output)
+
+
+def run(input_dir, output_dir, plot=True):
+    dataset = data.read_data_from_directory(input_dir)
+    experiment = Experiment(dataset)
+    # save concatenated "raw" data
+    dataset.to_csv(
+        os.path.join(output_dir, f"PlateResults_{experiment.experiment_name}.csv"),
+        index=False
+    )
+    indexfiles = data.read_indexfiles_from_directory(input_dir)
+    indexfiles.to_csv(
+        os.path.join(output_dir, f"indexfile_{experiment.experiment_name}.csv"),
+        index=False
+    )
+    experiment.save_results_as_dataframe(output_dir)
+    experiment.save_failures_as_dataframe(output_dir)
+    experiment.save_normalised_data(output_dir)
+    if plot:
+        # make plots
+        plot_dir_path = os.path.join(output_dir, "plots")
+        os.makedirs(plot_dir_path, exist_ok=True)
+        for sample_name, sample in experiment.samples:
+            plot = sample.plot()
+            plot.savefig(os.path.join(plot_dir_path, f"{sample_name}.pdf"))
 
 
 if __name__ == "__main__":

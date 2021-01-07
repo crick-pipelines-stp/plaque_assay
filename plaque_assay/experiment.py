@@ -58,7 +58,7 @@ class Experiment:
             sample_dict[name] = Sample(name, sample_df)
         return sample_dict
 
-    def collect_failures(self):
+    def get_failures_as_json(self):
         """collect all failures into a dictionary ready for JSON output"""
         failure_dict = {}
         failure_dict["plate_failures"] = {}
@@ -79,16 +79,55 @@ class Experiment:
             failure_dict["well_failures"].extend(sample_failures_as_dict)
         return failure_dict
 
-    def save_failures(self, output_dir):
+    def get_failures_as_dataframe(self):
+        """convert failure JSON file to a dataframe"""
+        failures_dict = self.get_failures_as_json()
+        types = []
+        plates = []
+        wells = []
+        reasons = []
+        # go through plate failures first as have to join multiple wells into a string
+        plate_failures = failures_dict["plate_failures"]
+        for _, plate_list in plate_failures.items():
+            plate = plate_list[0] # it's a single-element list
+            types.append(plate["type"])
+            plates.append(plate["plate"])
+            wells.append(";".join(plate["wells"]))
+            reasons.append(plate["reason"])
+        # go through well failures
+        well_failures = failures_dict["well_failures"]
+        for well_failure in well_failures:
+            types.append(well_failure["type"])
+            plates.append(well_failure["plate"])
+            wells.append(well_failure["well"])
+            reasons.append(well_failure["reason"])
+        df = pd.DataFrame(
+            {
+                "failure_type": types,
+                "plate": plates,
+                "well": wells,
+                "failure_reason": reasons
+            }
+        )
+        return df
+
+    def save_failures_as_dataframe(self, output_dir):
+        failures_df = self.get_failures_as_dataframe()
+        failure_output_path = os.path.join(
+            output_dir, f"failures_{self.experiment_name}.csv"
+        )
+        failures_df.to_csv(failure_output_path, index=False)
+
+    def save_failures_as_json(self, output_dir):
         """docstring"""
-        failures = self.collect_failures()
+        failures = self.get_failures_as_json()
         failure_output_path = os.path.join(
             output_dir, f"failures_{self.experiment_name}.json"
         )
         with open(failure_output_path, "w") as f:
             json.dump(failures, f, indent=4)
 
-    def collect_results(self):
+    def get_results_as_json(self):
         """collect all results into a dictionary read for JSON output"""
         results = {}
         results["result_mapping"] = utils.INT_TO_RESULT
@@ -97,16 +136,59 @@ class Experiment:
             results["results"][sample_name] = sample.ic50
         return results
 
-    def save_results(self, output_dir):
+    def get_results_as_dataframe(self):
+        """convert results JSON file to a dataframe"""
+        results_dict  = self.get_results_as_json()
+        result_mapping = results_dict["result_mapping"]
+        wells = []
+        ic50s = []
+        errors = []
+        for well, value in results_dict["results"].items():
+            wells.append(well)
+            if value < 0:
+                # is an error code
+                ic50s.append(None)
+                error_string = result_mapping[value]
+                errors.append(error_string)
+            else:
+                # is an ic50 value
+                ic50s.append(value)
+                errors.append(None)
+        df = pd.DataFrame({
+            "well": wells,
+            "ic50": ic50s,
+            "error": errors
+        })
+        return df
+
+    def save_results_as_dataframe(self, output_dir):
+        results_df = self.get_results_as_dataframe()
+        result_output_path = os.path.join(
+            output_dir, f"results_{self.experiment_name}.csv"
+        )
+        results_df.to_csv(result_output_path, index=False)
+
+    def save_results_as_json(self, output_dir):
         """docstring"""
-        results = self.collect_results()
+        results = self.get_results_as_json()
         result_output_path = os.path.join(
             output_dir, f"results_{self.experiment_name}.json"
         )
         with open(result_output_path, "w") as f:
             json.dump(results, f, indent=4)
 
-    def save_normalised_data(self, output_dir):
+    def save_normalised_data(self, output_dir, concatenate=True):
         """docstring"""
-        for _, plate_object in self.plates:
-            plate_object.save_normalised_data(output_dir)
+        if concatenate:
+            # concatenated all dataframes together
+            dataframes = []
+            for _, plate_object in self.plates:
+                df = plate_object.get_normalised_data()
+                dataframes.append(df)
+            df_concat = pd.concat(dataframes)
+            save_path = os.path.join(output_dir, f"normalised_{self.experiment_name}.csv")
+            df_concat.to_csv(save_path, index=False)
+        else:
+            # save as individual dataframe per plate
+            for _, plate_object in self.plates:
+                plate_object.save_normalised_data(output_dir)

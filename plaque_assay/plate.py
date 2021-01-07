@@ -49,7 +49,6 @@ class Plate:
                 failure.CellAreaPlateFailure(
                     plate=self.barcode,
                     wells=control_outliers["Well"].values.to_list(),
-                    reason="cell region area outside expected range for control wells",
                 )
             )
         if outliers.shape[0]:
@@ -73,7 +72,6 @@ class Plate:
                 failure.InfectionPlateFailure(
                     plate=self.barcode,
                     wells=VIRUS_ONLY_WELLS,
-                    reason="plate fail due to infection outside optimal range",
                 )
             )
         self.df["Percentage Infected"] = self.df[feature] / infection * 100
@@ -99,7 +97,7 @@ class Plate:
 
     def get_normalised_data(self):
         """
-        return a simlified dataframe of just the normalised data
+        return a simplified dataframe of just the normalised data
         that is saved alongside the final IC50 results
         """
         wanted_cols = [
