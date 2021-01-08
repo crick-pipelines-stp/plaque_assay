@@ -1,5 +1,6 @@
 import argparse
 import os
+import sqlite3
 
 from plaque_assay.experiment import Experiment
 from plaque_assay import data
@@ -28,6 +29,9 @@ def get_arguments():
 
 def main():
     args = get_arguments()
+    # create database for dashboard if it doesn't already exist
+    db_path = "./plaque_assay_results.sqlite"
+    conn = sqlite3.connect(db_path)
     dataset = data.read_data_from_directory(args.input)
     experiment = Experiment(dataset)
     # save concatenated "raw" data
@@ -40,8 +44,13 @@ def main():
         os.path.join(args.output, f"indexfiles_{experiment.experiment_name}.csv"),
         index=False,
     )
+    results = experiment.get_results_as_dataframe()
+    results["experiment"] = experiment.experiment_name
+    results.to_sql("results", con=conn, if_exists="append", index=False)
     experiment.save_results_as_dataframe(args.output)
     experiment.save_failures_as_dataframe(args.output)
+    failures = experiment.get_failures_as_dataframe()
+    failures.to_sql("failures", con=conn, if_exists="append", index=False)
     experiment.save_normalised_data(args.output)
 
 

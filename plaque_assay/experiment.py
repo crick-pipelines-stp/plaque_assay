@@ -111,6 +111,7 @@ class Experiment:
                 "failure_reason": reasons,
             }
         )
+        df["experiment"] = self.experiment_name
         return df
 
     def save_failures_as_dataframe(self, output_dir):
@@ -144,19 +145,20 @@ class Experiment:
         result_mapping = results_dict["result_mapping"]
         wells = []
         ic50s = []
-        errors = []
+        statuses = []
         for well, value in results_dict["results"].items():
             wells.append(well)
             if value < 0:
                 # is an error code
                 ic50s.append(None)
-                error_string = result_mapping[value]
-                errors.append(error_string)
+                status_string = result_mapping[value]
+                statuses.append(status_string)
             else:
                 # is an ic50 value
                 ic50s.append(value)
-                errors.append(None)
-        df = pd.DataFrame({"well": wells, "ic50": ic50s, "error": errors})
+                statuses.append(None)
+        df = pd.DataFrame({"well": wells, "ic50": ic50s, "status": statuses})
+        df["experiment"] = self.experiment_name
         return df
 
     def save_results_as_dataframe(self, output_dir):
