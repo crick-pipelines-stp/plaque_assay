@@ -194,3 +194,51 @@ class Experiment:
             # save as individual dataframe per plate
             for _, plate_object in self.plates:
                 plate_object.save_normalised_data(output_dir)
+
+    def get_model_parameters_as_dataframe(self):
+        """
+        collate and store curve-fitting parameters as a dataframe
+        """
+        wells = []
+        param_a = []
+        param_b = []
+        param_c = []
+        for well, sample_obj in self.sample_store.items():
+            wells.append(well)
+            model_params = sample_obj.model_params
+            if model_params is not None:
+                a, b, c = model_params
+            else:
+                a, b, c = None, None, None
+            param_a.append(a)
+            param_b.append(b)
+            param_c.append(c)
+        df = pd.DataFrame(
+            {
+                "well": wells,
+                "param_a": param_a,
+                "param_b": param_b,
+                "param_c": param_c
+            }
+        )
+        df["experiment"] = self.experiment_name
+        return df
+
+    def get_percentage_infected_dataframe(self):
+        """
+        get a dataframe value of dilutions and percentage infected
+        """
+        dataframe_list = []
+        for well, sample_obj in self.sample_store.items():
+            sample_df = sample_obj.data.copy()
+            sample_df["well"] = well
+            dataframe_list.append(sample_df)
+        df = pd.concat(dataframe_list)
+        df["experiment"] = self.experiment_name
+        # remove capitalization and whitespace from column names
+        df.columns = [i.replace(" ", "_").lower() for i in df.columns]
+        return df
+
+
+
+

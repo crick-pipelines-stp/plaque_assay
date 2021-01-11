@@ -49,9 +49,13 @@ def main():
     results.to_sql("results", con=conn, if_exists="append", index=False)
     experiment.save_results_as_dataframe(args.output)
     experiment.save_failures_as_dataframe(args.output)
+    percentage_infected_df = experiment.get_percentage_infected_dataframe()
+    percentage_infected_df.to_sql("percentage_infected", con=conn, if_exists="append")
     failures = experiment.get_failures_as_dataframe()
     failures.to_sql("failures", con=conn, if_exists="append", index=False)
     experiment.save_normalised_data(args.output)
+    model_parameters = experiment.get_model_parameters_as_dataframe()
+    model_parameters.to_sql("parameters", con=conn, if_exists="append")
 
 
 def run(input_dir, output_dir, plot=True):
