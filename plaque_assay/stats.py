@@ -29,8 +29,8 @@ def non_linear_model(x, y, func=dr_3):
     fit non-linear least squares to the data
     """
     # initial guess at sensible parameters
-    p0 = [0, 100, 0]
-    bounds = ((-20, -20, -10), (120, 120, 10))
+    p0 = [0, 100, 0.015]
+    bounds = ((-0.01, 0, -10), (100, 120, 10))
     popt, pcov = scipy.optimize.curve_fit(
         func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )
