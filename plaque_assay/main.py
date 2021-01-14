@@ -4,6 +4,7 @@ import os
 import sqlite3
 
 from plaque_assay.experiment import Experiment
+from plaque_assay.consts import UNWANTED_METADATA
 from plaque_assay import data
 
 
@@ -43,7 +44,7 @@ def main():
     experiment = Experiment(dataset)
     logging.info("Experiment named as: %s", experiment.experiment_name)
     # save concatenated "raw" data
-    dataset.to_csv(
+    dataset.drop(UNWANTED_METADATA, axis=1).to_csv(
         os.path.join(args.output, f"plateResults_{experiment.experiment_name}.csv"),
         index=False,
     )
