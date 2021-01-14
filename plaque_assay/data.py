@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pandas as pd
@@ -19,6 +20,7 @@ def read_data_from_list(plate_list):
             sep="\t",
         )
         plate_barcode = path.split(os.sep)[-1].split("__")[0]
+        logging.info("plate barcode detected as %s", plate_barcode)
         df["Dilution"] = consts.plate_mapping[plate_num]
         # add well labels to dataframe
         well_labels = []
@@ -28,11 +30,20 @@ def read_data_from_list(plate_list):
         df["PlateNum"] = plate_num
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)
-    return pd.concat(dataframes)
+    df_concat = pd.concat(dataframes)
+    logging.debug("input data shape: %s", df_concat.shape)
+    return df_concat
 
 
 def get_plate_list(data_dir):
-    return [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
+    plate_list = [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
+    if len(plate_list) == 8:
+        logging.debug("plate list detected: %s", plate_list)
+    else:
+        logging.error(
+            "Did not detect 8 plates, detected %s :", len(plate_list), plate_list
+        )
+    return plate_list
 
 
 def read_data_from_directory(data_dir):
@@ -57,6 +68,9 @@ def read_indexfiles_from_list(plate_list):
     # remove annoying empty "Unnamed: 16" column
     to_rm = [col for col in df_concat.columns if col.startswith("Unnamed:")]
     df_concat.drop(to_rm, axis=1, inplace=True)
+    if len(to_rm) > 0:
+        logging.info("removed columns: %s from concatenated indexfiles", to_rm)
+    logging.debug("indexfile shape: %s", df_concat.shape)
     return df_concat
 
 

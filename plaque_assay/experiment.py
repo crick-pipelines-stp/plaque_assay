@@ -1,6 +1,7 @@
 """
 module docstring
 """
+import logging
 import os
 import json
 
@@ -96,9 +97,15 @@ class Experiment:
             plates.append(plate["plate"])
             wells.append(";".join(plate["wells"]))
             reasons.append(plate["reason"])
+            logging.warning(
+                "plate %s failed due to %s", plate["plate"], plate["reason"]
+            )
         # go through well failures
         well_failures = failures_dict["well_failures"]
         for well_failure in well_failures:
+            logging.warning(
+                "well %s failed due to %s", well_failure["well"], well_failure["reason"]
+            )
             types.append(well_failure["type"])
             plates.append(well_failure["plate"])
             wells.append(well_failure["well"])
@@ -120,6 +127,7 @@ class Experiment:
             output_dir, f"failures_{self.experiment_name}.csv"
         )
         failures_df.to_csv(failure_output_path, index=False)
+        logging.info("failures dataframe saved to %s", failure_output_path)
 
     def save_failures_as_json(self, output_dir):
         """docstring"""
@@ -129,6 +137,7 @@ class Experiment:
         )
         with open(failure_output_path, "w") as f:
             json.dump(failures, f, indent=4)
+        logging.info("failures json saved to %s", failure_output_path)
 
     def get_results_as_json(self):
         """collect all results into a dictionary read for JSON output"""
@@ -167,6 +176,7 @@ class Experiment:
             output_dir, f"results_{self.experiment_name}.csv"
         )
         results_df.to_csv(result_output_path, index=False)
+        logging.info("results dataframe saved to %s", result_output_path)
 
     def save_results_as_json(self, output_dir):
         """docstring"""
@@ -176,6 +186,7 @@ class Experiment:
         )
         with open(result_output_path, "w") as f:
             json.dump(results, f, indent=4)
+        logging.info("results json saved to %s", result_output_path)
 
     def save_normalised_data(self, output_dir, concatenate=True):
         """docstring"""
@@ -190,6 +201,7 @@ class Experiment:
                 output_dir, f"normalised_{self.experiment_name}.csv"
             )
             df_concat.to_csv(save_path, index=False)
+            logging.info("concatenated normalised data saved to %s", save_path)
         else:
             # save as individual dataframe per plate
             for _, plate_object in self.plates:
@@ -214,12 +226,7 @@ class Experiment:
             param_b.append(b)
             param_c.append(c)
         df = pd.DataFrame(
-            {
-                "well": wells,
-                "param_a": param_a,
-                "param_b": param_b,
-                "param_c": param_c
-            }
+            {"well": wells, "param_a": param_a, "param_b": param_b, "param_c": param_c}
         )
         df["experiment"] = self.experiment_name
         return df
@@ -238,7 +245,3 @@ class Experiment:
         # remove capitalization and whitespace from column names
         df.columns = [i.replace(" ", "_").lower() for i in df.columns]
         return df
-
-
-
-

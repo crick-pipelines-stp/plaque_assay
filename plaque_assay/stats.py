@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import scipy.optimize
 
@@ -20,7 +22,8 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     line = np.full(x.shape, intersect)
     idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
     if len(idx) > 1:
-        raise RuntimeError(f"Found more than 1 intersect. len = {len(idx)}")
+        logging.error(f"Found more than 1 intersect. len = {len(idx)}")
+        return None
     return x[idx], curve[idx]
 
 
@@ -83,7 +86,7 @@ def calc_heuristics_dilutions(group, threshold, weak_threshold):
         return utils.result_to_int(result)
 
 
-def calc_heuristics_curve(x, y, threshold, weak_threshold):
+def calc_heuristics_curve(name, x, y, threshold, weak_threshold):
     """
     heuristics based on the model fit where we cannot calculate the intercept
     at the threshold
@@ -93,6 +96,7 @@ def calc_heuristics_curve(x, y, threshold, weak_threshold):
     outliers = hampel(y, 5)
     if outliers:
         result = "failed to fit model"
+        logging.warning("well %s model failed due to hampel outliers on curve", name)
     # look for times when the curve doesn't reach below threshold but
     # drops below weak_threshold indicated "weak inhibition"
     if min(y) > threshold and min(y) < weak_threshold:
@@ -138,7 +142,7 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
             # model successfully fit
             dr_curve = dr_3(x_interpolated, *model_params)
             curve_heuristics = calc_heuristics_curve(
-                x_interpolated, dr_curve, threshold, weak_threshold
+                name, x_interpolated, dr_curve, threshold, weak_threshold
             )
             if curve_heuristics is not None:
                 result = curve_heuristics
@@ -150,6 +154,7 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
                     result = 1 / intersect_x[0]
                 except (IndexError, RuntimeError):
                     result = utils.result_to_int("failed to fit model")
+    logging.debug("well %s fitted with method %s", name, fit_method)
     return fit_method, result, model_params
 
 
@@ -178,4 +183,6 @@ def calc_median_all_plates(df):
     calculate the median of "Cells - Image Region Area - Mean per Well"
     for all wells of all plates
     """
-    return df["Cells - Image Region Area [µm²] - Mean per Well"].median()
+    median = df["Cells - Image Region Area [µm²] - Mean per Well"].median()
+    logging.info("median 'Cells = Image Region Area' for all plates %s", median)
+    return median

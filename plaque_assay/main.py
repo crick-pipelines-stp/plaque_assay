@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import sqlite3
 
@@ -29,11 +30,18 @@ def get_arguments():
 
 def main():
     args = get_arguments()
+    logging.basicConfig(
+        filename=f"{os.path.expanduser('~')}/plaque_analysis.log",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s: %(message)s",
+    )
+    logging.info("Started analysis with args %s", args)
     # create database for dashboard if it doesn't already exist
     db_path = "./plaque_assay_results.sqlite"
     conn = sqlite3.connect(db_path)
     dataset = data.read_data_from_directory(args.input)
     experiment = Experiment(dataset)
+    logging.info("Experiment named as: %s", experiment.experiment_name)
     # save concatenated "raw" data
     dataset.to_csv(
         os.path.join(args.output, f"plateResults_{experiment.experiment_name}.csv"),
