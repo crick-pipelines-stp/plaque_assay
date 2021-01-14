@@ -1,3 +1,4 @@
+import logging
 import os
 import string
 
@@ -41,5 +42,5 @@ def get_dilution_from_barcode(plate_name):
     try:
         return int(basename[1])
     except ValueError as e:
-        print(f"failed on {plate_name}")
+        logging.error("Failed to parse barcode from plate %s, error: %s", plate_name, e)
         raise e

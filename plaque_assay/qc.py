@@ -4,15 +4,18 @@ from string import ascii_uppercase
 import pandas as pd
 
 from . import stats
+from . import qc_criteria
 
 
-def detect_low_cells_image_region_area(df, lower_threshold=0.7, upper_threshold=1.25):
+def detect_low_cells_image_region_area(df):
     """
     Identify wells where "Cells - Image Region Area [µm²] - Mean per Well"
     is < 70% or > 125% of the median calculated in "calc_median_all_plates()"
     - return these wells as a list
     - if any are A-H12, fail entire plate
     """
+    lower_threshold = qc_criteria.low_cells_image_region_area_low
+    upper_threshold = qc_criteria.low_cells_image_region_area_high
     output = namedtuple("Failures", ["failed_plates", "failed_wells"])
     all_median = stats.calc_median_all_plates(df)
     col_name = "Cells - Image Region Area [µm²] - Mean per Well"
@@ -40,7 +43,7 @@ def detect_high_background(df):
     """
     colname = "Cells - Intensity Image Region DAPI (global) Mean - Mean per Well"
     experiment_median = df[colname].median()
-    threshold = experiment_median * 1.1
+    threshold = experiment_median * qc_criteria.high_background_ratio
     failures = []
     columns = ["Well", "PlateNum", colname]
     for idx, well, plate, val in df[columns].itertuples():

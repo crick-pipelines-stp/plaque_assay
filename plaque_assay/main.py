@@ -6,6 +6,7 @@ import sqlite3
 from plaque_assay.experiment import Experiment
 from plaque_assay.consts import UNWANTED_METADATA
 from plaque_assay import data
+from plaque_assay.qc_criteria import save_qc_criteria
 
 
 def get_arguments():
@@ -65,6 +66,7 @@ def main():
     experiment.save_normalised_data(args.output)
     model_parameters = experiment.get_model_parameters_as_dataframe()
     model_parameters.to_sql("parameters", con=conn, if_exists="append")
+    save_qc_criteria(args.output, experiment.experiment_name)
 
 
 def run(input_dir, output_dir, plot=True):

@@ -4,6 +4,7 @@ module docstring
 from . import stats
 from . import failure
 from . import utils
+from . import qc_criteria
 from .consts import POSITIVE_CONTROL_WELLS
 
 import numpy as np
@@ -44,8 +45,10 @@ class Sample:
         if the IC50 value is between 500-800. Otherwise it's an
         failure.
         """
+        lower_limit = qc_criteria.positive_control_low
+        upper_limit = qc_criteria.positive_control_high
         if self.is_positive_control:
-            if self.ic50 < 500 or self.ic50 > 800:
+            if self.ic50 < lower_limit or self.ic50 > upper_limit:
                 positive_control_failure = failure.WellFailure(
                     well=self.sample_name,
                     plate="DILUTION SERIES",

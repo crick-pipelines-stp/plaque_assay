@@ -8,6 +8,7 @@ from plaque_assay import plate
 from plaque_assay import failure
 from plaque_assay import sample
 from plaque_assay import consts
+from plaque_assay import qc_criteria
 
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "failure",
     "sample",
     "consts",
+    "qc_critera",
 ]

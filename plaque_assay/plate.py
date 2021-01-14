@@ -7,6 +7,7 @@ import os
 import pandas as pd
 
 from . import failure
+from . import qc_criteria
 from .consts import VIRUS_ONLY_WELLS
 
 
@@ -38,8 +39,10 @@ class Plate:
         experiment_median = self.df[feature].median()
         ratio = self.df[feature] / experiment_median
         self.df["ratio"] = ratio
-        low = self.df[self.df["ratio"] < 0.7]
-        high = self.df[self.df["ratio"] > 1.25]
+        lower_limit = qc_criteria.low_cells_image_region_area_low
+        upper_limit = qc_criteria.low_cells_image_region_area_high
+        low = self.df[self.df["ratio"] < lower_limit]
+        high = self.df[self.df["ratio"] > upper_limit]
         outliers = pd.concat([low, high])
         control_outliers = outliers[outliers["Well"].str.endswith("12")]
         if control_outliers.shape[0] > 0:
@@ -62,10 +65,14 @@ class Plate:
 
     def calc_percentage_infected(self):
         """docstring"""
+        # determine if infection rate of virus-only-wells
+        # is within accetable limts, flag the plate if this is false
+        lower_limit = qc_criteria.infection_rate_low
+        upper_limit = qc_criteria.infection_rate_high
         feature = "Background Subtracted Plaque Area"
         virus_only_bool = self.df.Well.isin(VIRUS_ONLY_WELLS)
         infection = self.df[virus_only_bool][feature].median()
-        if infection < 0.15 or infection > 0.8:
+        if infection < lower_limit or infection > upper_limit:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.InfectionPlateFailure(
@@ -82,7 +89,7 @@ class Plate:
         """
         colname = "Cells - Intensity Image Region DAPI (global) Mean - Mean per Well"
         experiment_median = self.df[colname].median()
-        threshold = experiment_median * 1.1
+        threshold = experiment_median * qc_criteria.high_background_proportion
         columns = ["Well", "Plate_barcode", colname]
         for _, well, plate, val in self.df[columns].itertuples():
             if val > threshold:
