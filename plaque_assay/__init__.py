@@ -20,5 +20,5 @@ __all__ = [
     "failure",
     "sample",
     "consts",
-    "qc_critera",
+    "qc_criteria",
 ]
