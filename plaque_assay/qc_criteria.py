@@ -11,7 +11,7 @@ low_cells_image_region_area_low = 0.7
 low_cells_image_region_area_high = 1.25
 
 
-#Identify wells with high fluorescent background.
+# Identify wells with high fluorescent background.
 #    This is detected by wells with over 110% of the experiment median
 #    in the DAPI channel.
 high_background_proportion = 1.1
