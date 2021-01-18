@@ -6,7 +6,7 @@ import sqlite3
 from plaque_assay.experiment import Experiment
 from plaque_assay.consts import UNWANTED_METADATA
 from plaque_assay import data
-from plaque_assay.qc_criteria import save_qc_criteria
+from plaque_assay import qc_criteria
 
 
 def get_arguments():
@@ -66,31 +66,36 @@ def main():
     experiment.save_normalised_data(args.output)
     model_parameters = experiment.get_model_parameters_as_dataframe()
     model_parameters.to_sql("parameters", con=conn, if_exists="append")
-    save_qc_criteria(args.output, experiment.experiment_name)
 
 
-def run(input_dir, output_dir, plot=True):
-    dataset = data.read_data_from_directory(input_dir)
+def run(plate_list, output_dir, plot=True):
+    db_path = "/usr/src/app/test_output/plaque_assay_results.sqlite"
+    conn = sqlite3.connect(db_path)
+    dataset = data.read_data_from_list(plate_list)
     experiment = Experiment(dataset)
     # save concatenated "raw" data
-    dataset.to_csv(
-        os.path.join(output_dir, f"PlateResults_{experiment.experiment_name}.csv"),
+    # save concatenated "raw" data
+    dataset.drop(UNWANTED_METADATA, axis=1).to_csv(
+        os.path.join(output_dir, f"plateResults_{experiment.experiment_name}.csv"),
         index=False,
     )
-    data.read_indexfiles_from_directory(input_dir).to_csv(
+    data.read_indexfiles_from_list(plate_list).to_csv(
         os.path.join(output_dir, f"indexfile_{experiment.experiment_name}.csv"),
         index=False,
     )
+    results = experiment.get_results_as_dataframe()
+    results["experiment"] = experiment.experiment_name
+    results.to_sql("results", con=conn, if_exists="append", index=False)
     experiment.save_results_as_dataframe(output_dir)
     experiment.save_failures_as_dataframe(output_dir)
+    percentage_infected_df = experiment.get_percentage_infected_dataframe()
+    percentage_infected_df.to_sql("percentage_infected", con=conn, if_exists="append")
+    failures = experiment.get_failures_as_dataframe()
+    failures.to_sql("failures", con=conn, if_exists="append", index=False)
     experiment.save_normalised_data(output_dir)
-    if plot:
-        # make plots
-        plot_dir_path = os.path.join(output_dir, "plots")
-        os.makedirs(plot_dir_path, exist_ok=True)
-        for sample_name, sample in experiment.samples:
-            plot = sample.plot()
-            plot.savefig(os.path.join(plot_dir_path, f"{sample_name}.pdf"))
+    model_parameters = experiment.get_model_parameters_as_dataframe()
+    model_parameters.to_sql("parameters", con=conn, if_exists="append")
+    qc_criteria.save_qc_criteria(output_dir, experiment.experiment_name)
 
 
 if __name__ == "__main__":
