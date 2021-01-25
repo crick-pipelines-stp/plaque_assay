@@ -17,10 +17,10 @@ low_cells_image_region_area_high = 1.25
 high_background_proportion = 1.1
 
 # If this sample is a postitive control, then determine
-# if the IC50 value is between 500-800. Otherwise it's an
+# if the IC50 value is between specified values. Otherwise it's an
 # failure.
-positive_control_low = 40
-positive_control_high = 300
+positive_control_low = 500
+positive_control_high = 1000
 
 
 # Accetable infection rate, which is calculated as the median
