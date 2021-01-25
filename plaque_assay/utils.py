@@ -44,3 +44,27 @@ def get_dilution_from_barcode(plate_name):
     except ValueError as e:
         logging.error("Failed to parse barcode from plate %s, error: %s", plate_name, e)
         raise e
+
+
+def unpad_well(well):
+    """
+    Remove zero-padding from well labels
+
+    Arguments:
+    ----------
+    well: string
+
+    Returns:
+    --------
+    string
+    """
+    row = well[0]
+    col = well[1:]
+    return f"{row}{int(col)}"
+
+
+def unpad_well_col(well_col):
+    """
+    Remove padding from an entire column of well labels
+    """
+    return [unpad_well(i) for i in well_col]

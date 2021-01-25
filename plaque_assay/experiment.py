@@ -188,15 +188,18 @@ class Experiment:
             json.dump(results, f, indent=4)
         logging.info("results json saved to %s", result_output_path)
 
+    def get_normalised_data(self):
+        dataframes = []
+        for _, plate_object in self.plates:
+            df = plate_object.get_normalised_data()
+            dataframes.append(df)
+        df_concat = pd.concat(dataframes)
+        return df_concat
+
     def save_normalised_data(self, output_dir, concatenate=True):
         """docstring"""
         if concatenate:
-            # concatenated all dataframes together
-            dataframes = []
-            for _, plate_object in self.plates:
-                df = plate_object.get_normalised_data()
-                dataframes.append(df)
-            df_concat = pd.concat(dataframes)
+            df_concat = self.get_normalised_data()
             save_path = os.path.join(
                 output_dir, f"normalised_{self.experiment_name}.csv"
             )
@@ -207,7 +210,7 @@ class Experiment:
             for _, plate_object in self.plates:
                 plate_object.save_normalised_data(output_dir)
 
-    def get_model_parameters_as_dataframe(self):
+    def get_model_parameters(self):
         """
         collate and store curve-fitting parameters as a dataframe
         """
