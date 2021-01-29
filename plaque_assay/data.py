@@ -161,7 +161,6 @@ def upload_indexfiles(session, indexfiles_dataset):
     # get workflow ID
     workflow_id = [int(i[3:]) for i in indexfiles_dataset["plate_barcode"]]
     indexfiles_dataset["workflow_id"] = workflow_id
-    indexfiles_dataset["well"] = utils.unpad_well_col(indexfiles_dataset["well"])
     for i in range(0, len(indexfiles_dataset), 1000):
         df_slice = indexfiles_dataset.iloc[i : i + 1000]
         session.bulk_insert_mappings(
