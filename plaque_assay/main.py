@@ -3,7 +3,6 @@ import os
 import sqlalchemy
 
 from plaque_assay.experiment import Experiment
-from plaque_assay.consts import UNWANTED_METADATA
 from plaque_assay import data
 
 
@@ -34,10 +33,10 @@ def run(plate_list):
     failures = experiment.get_failures_as_dataframe()
     model_parameters = experiment.get_model_parameters()
     lims_db = data.DatabaseUploader(session)
-    lims_db.upload_plate_results(session, dataset)
-    lims_db.upload_indexfiles(session, indexfiles)
-    lims_db.upload_normalised_results(session, normalised_data)
-    lims_db.upload_final_results(session, final_results)
-    lims_db.upload_failures(session, failures)
-    lims_db.upload_model_parameters(session, model_parameters)
+    lims_db.upload_plate_results(dataset)
+    lims_db.upload_indexfiles(indexfiles)
+    lims_db.upload_normalised_results(normalised_data)
+    lims_db.upload_final_results(final_results)
+    lims_db.upload_failures(failures)
+    lims_db.upload_model_parameters(model_parameters)
     lims_db.commit()

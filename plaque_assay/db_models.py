@@ -132,6 +132,7 @@ class NE_failed_results(Base):
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
 
+
 class NE_model_parameters(Base):
     __tablename__ = "NE_model_parameters"
     id = sql.Column(sql.Integer, primary_key=True)

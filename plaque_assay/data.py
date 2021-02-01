@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 
 import pandas as pd
 import numpy as np
@@ -134,7 +133,9 @@ class DatabaseUploader:
         plate_results_dataset = plate_results_dataset[list(rename_dict.values())]
         workflow_id = [int(i[3:]) for i in plate_results_dataset["plate_barcode"]]
         plate_results_dataset["workflow_id"] = workflow_id
-        plate_results_dataset["well"] = utils.unpad_well_col(plate_results_dataset["well"])
+        plate_results_dataset["well"] = utils.unpad_well_col(
+            plate_results_dataset["well"]
+        )
         self.session.bulk_insert_mappings(
             db_models.NE_raw_results, plate_results_dataset.to_dict(orient="records")
         )
