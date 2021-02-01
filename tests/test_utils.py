@@ -1,6 +1,10 @@
 from plaque_assay import utils
 
 
+THRESHOLD = 50
+WEAK_THRESHOLD = 60
+
+
 def test_col_to_well():
     assert utils.row_col_to_well(1, 1) == "A01"
     assert utils.row_col_to_well(8, 12) == "H12"

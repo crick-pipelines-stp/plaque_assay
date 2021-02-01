@@ -49,6 +49,8 @@ def calc_heuristics_dilutions(group, threshold, weak_threshold):
     # convert dilutions into 40 -> 2560
     avg.index = 1 / avg.index
     avg.index = avg.index.astype(int)
+    # round to nearest 10
+    avg.index = [round(i, -1) for i in avg.index]
     # for complete inhibition
     if all(avg.values <= threshold):
         result = "complete inhibition"
@@ -108,8 +110,6 @@ def calc_heuristics_curve(name, x, y, threshold, weak_threshold):
             result = "weak inhibition"
         else:
             result = "failed to fit model"
-    if min(y) > weak_threshold:
-        result = "no inhibition"
     if result:
         return utils.result_to_int(result)
 
@@ -122,7 +122,8 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
     """
     df = df.sort_values("Dilution")
     x = df["Dilution"].values
-    x_min, x_max = x.min(), x.max()
+    x_min = 0.0000390625
+    x_max = 0.25
     x_interpolated = np.linspace(x_min, x_max, 1000)
     y = df["Percentage Infected"].values
     model_params = None
@@ -152,7 +153,15 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
                         x_min, x_max, dr_curve
                     )
                     result = 1 / intersect_x[0]
-                except (IndexError, RuntimeError):
+                    if result < 1 / x.max():
+                        logging.info(
+                            "%s IC50 of %s less than lowest dilution, weak inhibition",
+                            name,
+                            result,
+                        )
+                        result = utils.result_to_int("weak inhibition")
+                except (IndexError, RuntimeError) as e:
+                    logging.error("during model fitting: %s", e)
                     result = utils.result_to_int("failed to fit model")
     logging.debug("well %s fitted with method %s", name, fit_method)
     return fit_method, result, model_params
