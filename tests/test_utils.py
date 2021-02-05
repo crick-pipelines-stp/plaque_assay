@@ -28,3 +28,26 @@ def test_get_dilution_from_barcode():
     assert utils.get_dilution_from_barcode(barcode) == 1
     barcode = "/some/other/paths/A410000001__2020_00_00T00_00_00-Measurement 1"
     assert utils.get_dilution_from_barcode(barcode) == 4
+
+
+def test_well_384_to_96():
+    assert utils.well_384_to_96("A01") == "A01"
+    assert utils.well_384_to_96("P24") == "H12"
+    assert utils.well_384_to_96("B02") == "A01"
+    assert utils.well_384_to_96("P01") == "H01"
+
+
+def test_get_dilution_from_384_well_label():
+    assert utils.get_dilution_from_384_well_label("A01") == 4
+    assert utils.get_dilution_from_384_well_label("A02") == 2
+    assert utils.get_dilution_from_384_well_label("B01") == 3
+    assert utils.get_dilution_from_384_well_label("B02") == 1
+    assert utils.get_dilution_from_384_well_label("P24") == 1
+    assert utils.get_dilution_from_384_well_label("A03") == 4
+
+
+def test_mock_384_barcode():
+    existing_barcodes = ["AA1000001", "AA2000001", "AA2000001"]
+    wells = ["A01", "A02", "A03"]
+    output = utils.mock_384_barcode(existing_barcodes, wells)
+    assert output == ["A41000001", "A22000001", "A42000001"]

@@ -9,7 +9,20 @@ from . import consts
 from . import db_models
 
 
-def read_data_from_list(plate_list):
+def read_data_from_list(plate_list, plate=96):
+    plate = int(plate)
+    if plate == 96:
+        return read_data_from_list_96(plate_list)
+    elif plate == 384:
+        return read_data_from_list_384(plate_list)
+    else:
+        raise ValueError("invalid value for plate")
+
+
+def read_data_from_list_96(plate_list):
+    """
+    read in data from plate list and assign dilution values by plate barcode
+    """
     plate_name_dict = {
         os.path.abspath(i): utils.get_dilution_from_barcode(i) for i in plate_list
     }
@@ -37,13 +50,56 @@ def read_data_from_list(plate_list):
     return df_concat
 
 
-def get_plate_list(data_dir):
+def read_data_from_list_384(plate_list):
+    """
+    Read in data from plate list and assign dilution values by well position.
+    NOTE: this will mock the data so the 4 dilutions on a single 384-well plate
+          are re-labelled to appear from 4 different 96 well plates.
+    """
+    dataframes = []
+    for path in plate_list:
+        df = pd.read_csv(
+            # NOTE: might not always be Evaluation1
+            os.path.join(path, "Evaluation1/PlateResults.txt"),
+            skiprows=8,
+            sep="\t",
+        )
+        plate_barcode = path.split(os.sep)[-1].split("__")[0]
+        logging.info("plate barcode detected as %s", plate_barcode)
+        well_labels = []
+        for row, col in df[["Row", "Column"]].itertuples(index=False):
+            well_labels.append(utils.row_col_to_well(row, col))
+        df["Well"] = well_labels
+        df["Plate_barcode"] = plate_barcode
+        dataframes.append(df)
+    df_concat = pd.concat(dataframes)
+    # mock barcodes NOTE: before changing wells
+    df_concat["Plate_barcode"] = utils.mock_384_barcode(
+        existing_barcodes=df_concat["Plate_barcode"], wells=df_concat["Well"]
+    )
+    # mock wells
+    df_concat["Well"] = [utils.well_384_to_96(i) for i in df_concat["Well"]]
+    df_concat["PlateNum"] = [int(i[1]) for i in df_concat["Plate_barcode"]]
+    df_concat["Dilution"] = [consts.plate_mapping[i] for i in df_concat["PlateNum"]]
+    logging.debug("input data shape: %s", df_concat.shape)
+    return df_concat
+
+
+def get_plate_list(data_dir, plate=96):
+    if plate == 96:
+        n_expected_plates = 8
+    elif plate == 384:
+        n_expected_plates = 2
+    else:
+        raise ValueError("invalid value for 'plate'")
     plate_list = [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
-    if len(plate_list) == 8:
+    if len(plate_list) == n_expected_plates:
         logging.debug("plate list detected: %s", plate_list)
     else:
         logging.error(
-            "Did not detect 8 plates, detected %s :", len(plate_list), plate_list
+            "Did not detect %s plates, detected %s :",
+            n_expected_plates,
+            len(plate_list),
         )
     return plate_list
 
@@ -57,11 +113,8 @@ def read_data_from_directory(data_dir):
 
 
 def read_indexfiles_from_list(plate_list):
-    plate_name_dict = {
-        os.path.abspath(i): utils.get_dilution_from_barcode(i) for i in plate_list
-    }
     dataframes = []
-    for path, plate_num in plate_name_dict.items():
+    for path in plate_list:
         df = pd.read_csv(os.path.join(path, "indexfile.txt"), sep="\t")
         plate_barcode = path.split(os.sep)[-1].split("__")[0]
         df["Plate_barcode"] = plate_barcode
@@ -136,10 +189,11 @@ class DatabaseUploader:
         plate_results_dataset["well"] = utils.unpad_well_col(
             plate_results_dataset["well"]
         )
+        # can't store NaN in mysql, to convert to None which are stored as null
+        plate_results_dataset = plate_results_dataset.replace({np.nan: None})
         self.session.bulk_insert_mappings(
             db_models.NE_raw_results, plate_results_dataset.to_dict(orient="records")
         )
-        # FIXME: update status and result_upload_time for NE_workflow_tracking
 
     def upload_indexfiles(self, indexfiles_dataset):
         """docstring"""
@@ -167,12 +221,13 @@ class DatabaseUploader:
         # get workflow ID
         workflow_id = [int(i[3:]) for i in indexfiles_dataset["plate_barcode"]]
         indexfiles_dataset["workflow_id"] = workflow_id
+        # can't store NaN in mysql, to convert to None which are stored as null
+        indexfiles_dataset = indexfiles_dataset.replace({np.nan: None})
         for i in range(0, len(indexfiles_dataset), 1000):
             df_slice = indexfiles_dataset.iloc[i : i + 1000]
             self.session.bulk_insert_mappings(
                 db_models.NE_raw_index, df_slice.to_dict(orient="records")
             )
-        # FIXME: update status and result_upload_time for NE_workflow_tracking
 
     def upload_normalised_results(self, norm_results):
         """docstring"""
@@ -192,10 +247,11 @@ class DatabaseUploader:
         assert len(set(workflow_id)) == 1
         norm_results["workflow_id"] = workflow_id
         norm_results["well"] = utils.unpad_well_col(norm_results["well"])
+        # can't store NaN in mysql, to convert to None which are stored as null
+        norm_results = norm_results.replace({np.nan: None})
         self.session.bulk_insert_mappings(
             db_models.NE_normalized_results, norm_results.to_dict(orient="records")
         )
-        # FIXME: update status and result_upload time for NE_workflow_tracking
 
     def upload_final_results(self, results):
         """docstring"""
@@ -219,7 +275,8 @@ class DatabaseUploader:
         if failures.shape[0] > 0:
             assert failures["experiment"].nunique() == 1
             failures["workflow_id"] = failures["experiment"].astype(int)
-            failures["well"] = utils.unpad_well_col(failures["well"])
+            # FIXME: doesn't work with multiple well in plate failures
+            #failures["well"] = utils.unpad_well_col(failures["well"])
             self.session.bulk_insert_mappings(
                 db_models.NE_failed_results, failures.to_dict(orient="records")
             )
@@ -234,3 +291,48 @@ class DatabaseUploader:
         self.session.bulk_insert_mappings(
             db_models.NE_model_parameters, model_parameters.to_dict(orient="records")
         )
+
+    def upload_barcode_changes_384(self, workflow_id):
+        """docstring"""
+        replicates = [1, 2]
+        # NOTE: dilution numbers match the LIMS values rather than assay values
+        assay_plates = []
+        ap_10 = []
+        ap_40 = []
+        ap_160 = []
+        ap_640 = []
+        workflow_ids = []
+        for replicate in replicates:
+            assay_plate = f"AA{replicate}{workflow_id}"
+            assay_plates.append(assay_plate)
+            ap_10.append(f"A1{replicate}{workflow_id}")
+            ap_40.append(f"A2{replicate}{workflow_id}")
+            ap_160.append(f"A3{replicate}{workflow_id}")
+            ap_640.append(f"A4{replicate}{workflow_id}")
+            workflow_ids.append(workflow_id)
+        df = pd.DataFrame(
+            {
+                "assay_plate_384": assay_plates,
+                "ap_10": ap_10,
+                "ap_40": ap_40,
+                "ap_160": ap_160,
+                "ap_640": ap_640,
+                "workflow_id": workflow_ids,
+            }
+        )
+        self.session.bulk_insert_mappings(
+            db_models.NE_assay_plate_tracker_384, df.to_dict(orient="records")
+        )
+
+    def is_awaiting_results(self, workflow_id):
+        """
+        docstring
+        """
+        raise NotImplementedError()
+
+    def update_workflow_tracking(self, workflow_id):
+        """
+        Update the status in NE_workflow_tracking
+        """
+        # set status to "complete"
+        raise NotImplementedError()
