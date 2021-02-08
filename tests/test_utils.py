@@ -47,7 +47,7 @@ def test_get_dilution_from_384_well_label():
 
 
 def test_mock_384_barcode():
-    existing_barcodes = ["AA1000001", "AA2000001", "AA2000001"]
+    existing_barcodes = ["S01900001", "S02000001", "S02000001"]
     wells = ["A01", "A02", "A03"]
     output = utils.mock_384_barcode(existing_barcodes, wells)
-    assert output == ["A41000001", "A22000001", "A42000001"]
+    assert output == ["A41900001", "A22000001", "A42000001"]

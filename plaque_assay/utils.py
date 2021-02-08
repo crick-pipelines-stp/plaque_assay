@@ -120,6 +120,8 @@ def mock_384_barcode(existing_barcodes, wells):
     new_barcodes = []
     for well, barcode in zip(wells, existing_barcodes):
         dilution_int = get_dilution_from_384_well_label(well)
-        new_barcode = barcode[:1] + str(dilution_int) + barcode[2:]
+        replicate_int = barcode[2]
+        workflow_id = barcode[3:]
+        new_barcode = f"A{dilution_int}{replicate_int}{workflow_id}"
         new_barcodes.append(new_barcode)
     return new_barcodes
