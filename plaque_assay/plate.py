@@ -8,14 +8,14 @@ import pandas as pd
 
 from . import failure
 from . import qc_criteria
-from .consts import VIRUS_ONLY_WELLS
+from .consts import VIRUS_ONLY_WELLS, NO_VIRUS_WELLS
 
 
 class Plate:
     """Plate class"""
 
     def __init__(self, df):
-        self.df = df
+        self.df = self.subtract_plaque_area_background(df)
         assert df["PlateNum"].nunique() == 1
         self.barcode = df["Plate_barcode"].values[0]
         assert df["Dilution"].nunique() == 1
@@ -50,7 +50,7 @@ class Plate:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.CellAreaPlateFailure(
-                    plate=self.barcode, wells=control_outliers["Well"].values.to_list()
+                    plate=self.barcode, wells=control_outliers["Well"].to_list()
                 )
             )
         if outliers.shape[0]:
@@ -62,6 +62,21 @@ class Plate:
                         reason="cell region area outside expected range",
                     )
                 )
+
+    def subtract_plaque_area_background(self, df):
+        """
+        This is done on an experiment-level rather than plate-level, so belongs here rather
+        than the Plate class.
+        - Calculate the median of "Normalised Plaque area" fo no virus wells.
+        - Subtract median from "Normalised Plaque area" for each well and save
+          as "Background Subtracted Plaque Area"
+        """
+        feature = "Normalised Plaque area"
+        new_colname = "Background Subtracted Plaque Area"
+        no_virus_bool = df.Well.isin(NO_VIRUS_WELLS)
+        background = df[no_virus_bool][feature].median()
+        df[new_colname] = df[feature] - background
+        return df
 
     def calc_percentage_infected(self):
         """docstring"""

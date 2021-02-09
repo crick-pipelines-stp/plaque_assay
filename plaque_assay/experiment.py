@@ -17,7 +17,7 @@ class Experiment:
     """Experiment class, holds plates"""
 
     def __init__(self, df):
-        self.df = self.subtract_plaque_area_background(df)
+        self.df = df
         self.experiment_name = df["Plate_barcode"].values[0][3:]
         self.plate_store = {name: Plate(df) for name, df in df.groupby("Plate_barcode")}
         self.df = pd.concat([plate.df for plate in self.plate_store.values()])
@@ -41,12 +41,13 @@ class Experiment:
         - Subtract median from "Normalised Plaque area" for each well and save
           as "Background Subtracted Plaque Area"
         """
-        feature = "Normalised Plaque area"
-        new_colname = "Background Subtracted Plaque Area"
-        no_virus_bool = df.Well.isin(NO_VIRUS_WELLS)
-        background = df[no_virus_bool][feature].median()
-        df[new_colname] = df[feature] - background
-        return df
+        raise NotImplementedError("now moved to Plate class")
+        #feature = "Normalised Plaque area"
+        #new_colname = "Background Subtracted Plaque Area"
+        #no_virus_bool = df.Well.isin(NO_VIRUS_WELLS)
+        #background = df[no_virus_bool][feature].median()
+        #df[new_colname] = df[feature] - background
+        #return df
 
     def make_samples(self):
         """
