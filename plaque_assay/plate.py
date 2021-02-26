@@ -50,7 +50,7 @@ class Plate:
             self.plate_failed = True
             self.plate_failures.append(
                 failure.CellAreaPlateFailure(
-                    plate=self.barcode, wells=control_outliers["Well"].to_list()
+                    plate=self.barcode, wells=control_outliers["Well"].tolist()
                 )
             )
         if outliers.shape[0]:
