@@ -54,12 +54,12 @@ df_no_inhibition = pd.DataFrame(
 perc_good = [
     100.556437,
     102.200186,
-    104.246412,
-    96.365569,
-    110.787072,
-    118.955933,
-    44.517334,
-    54.988952,
+    80.246412,
+    82.365569,
+    60.787072,
+    54.955933,
+    12.517334,
+    13.988952,
 ]
 
 
@@ -77,6 +77,8 @@ def test_calc_heuristics_dilutions():
         df_no_inhibition, THRESHOLD, WEAK_THRESHOLD
     )
     assert utils.INT_TO_RESULT[no_inhibition_out] == "no inhibition"
+    # check that good inhibition values don't use the heuristics
+    # but instead get passed to the curve fitting algorithm
     good_inhib_out = stats.calc_heuristics_dilutions(
         df_good_inhibition, THRESHOLD, WEAK_THRESHOLD
     )
@@ -90,5 +92,6 @@ def test_calc_results_model():
         threshold=THRESHOLD,
         weak_threshold=WEAK_THRESHOLD,
     )
+    expected_ic50 = 150
     assert fit_method == "model fit"
-    assert result == utils.RESULT_TO_INT["weak inhibition"]
+    assert abs(result - expected_ic50) < 50

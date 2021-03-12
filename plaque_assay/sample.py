@@ -65,7 +65,7 @@ class Sample:
         if self.model_params is not None:
             x_min = self.data["Dilution"].min()
             x_max = self.data["Dilution"].max()
-            curve = stats.dr_3(x, *self.model_params)
+            curve = stats.dr_4(x, *self.model_params)
             plt.plot(1 / x, curve, linestyle="--", label="3 param dose-response")
             plt.legend(loc="upper left")
             try:

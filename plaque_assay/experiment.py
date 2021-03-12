@@ -4,6 +4,7 @@ module docstring
 import logging
 import os
 import json
+from collections import defaultdict
 
 import pandas as pd
 
@@ -215,23 +216,19 @@ class Experiment:
         """
         collate and store curve-fitting parameters as a dataframe
         """
-        wells = []
-        param_a = []
-        param_b = []
-        param_c = []
+        param_dict = defaultdict(list)
         for well, sample_obj in self.sample_store.items():
-            wells.append(well)
             model_params = sample_obj.model_params
             if model_params is not None:
-                a, b, c = model_params
+                top, bottom, ec50, hillslope = model_params
             else:
-                a, b, c = None, None, None
-            param_a.append(a)
-            param_b.append(b)
-            param_c.append(c)
-        df = pd.DataFrame(
-            {"well": wells, "param_a": param_a, "param_b": param_b, "param_c": param_c}
-        )
+                top, bottom, ec50, hillslope = None, None, None, None
+            param_dict["well"].append(well)
+            param_dict["param_top"].append(top)
+            param_dict["param_bottom"].append(bottom)
+            param_dict["param_ec50"].append(ec50)
+            param_dict["param_hillslope"].append(hillslope)
+        df = pd.DataFrame(param_dict)
         df["experiment"] = self.experiment_name
         return df
 

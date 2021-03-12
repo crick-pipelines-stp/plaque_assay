@@ -137,9 +137,10 @@ class NE_model_parameters(Base):
     __tablename__ = "NE_model_parameters"
     id = sql.Column(sql.Integer, primary_key=True)
     well = sql.Column(sql.String(45), nullable=False)
-    param_a = sql.Column(sql.DECIMAL(20, 15))
-    param_b = sql.Column(sql.DECIMAL(20, 15))
-    param_c = sql.Column(sql.DECIMAL(20, 15))
+    param_top = sql.Column(sql.DECIMAL(20, 15))
+    param_bottom = sql.Column(sql.DECIMAL(20, 15))
+    param_ec50 = sql.Column(sql.DECIMAL(20, 15))
+    param_hillslope = sql.Column(sql.DECIMAL(20, 15))
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )

@@ -11,6 +11,11 @@ def dr_3(x, top, bottom, ec50):
     return bottom + x * (top - bottom) / (ec50 + x)
 
 
+def dr_4(x, top, bottom, ec50, hill_slope):
+    """4 parameter dose response curve"""
+    return (bottom - top) / (1 + (x / ec50)**hill_slope)
+
+
 def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     """
     Really hacky way of finding intersect of two curves,
@@ -18,7 +23,7 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     In this case one of the curves is just a horizontal line where y = 50.
     TODO: solve this mathematically
     """
-    x = np.linspace(x_min, x_max, 1000)
+    x = np.linspace(x_min, x_max, 10000)
     line = np.full(x.shape, intersect)
     idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
     if len(idx) > 1:
@@ -27,13 +32,13 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     return x[idx], curve[idx]
 
 
-def non_linear_model(x, y, func=dr_3):
+def non_linear_model(x, y, func=dr_4):
     """
     fit non-linear least squares to the data
     """
     # initial guess at sensible parameters
-    p0 = [0, 100, 0.015]
-    bounds = ((-0.01, 0, -10), (100, 120, 10))
+    p0 = [0, 100, 0.015, 1]
+    bounds = ((-0.01, 0, -10, -10), (100, 120, 10, 10))
     popt, pcov = scipy.optimize.curve_fit(
         func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )
@@ -120,11 +125,14 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
     Once a model is fitted try heuristics based on the fitted curve.
     Then calculate the value based on the intercept where the curve = threshold.
     """
+    # FIXME: drop missing values
+    df = df.dropna()
+    #
     df = df.sort_values("Dilution")
     x = df["Dilution"].values
     x_min = 0.0000390625
     x_max = 0.25
-    x_interpolated = np.linspace(x_min, x_max, 1000)
+    x_interpolated = np.linspace(x_min, x_max, 10000)
     y = df["Percentage Infected"].values
     model_params = None
     heuristic = calc_heuristics_dilutions(df, threshold, weak_threshold)
@@ -140,8 +148,7 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
             result = utils.result_to_int("failed to fit model")
         fit_method = "model fit"
         if model_params is not None:
-            # model successfully fit
-            dr_curve = dr_3(x_interpolated, *model_params)
+            dr_curve = dr_4(x_interpolated, *model_params)
             curve_heuristics = calc_heuristics_curve(
                 name, x_interpolated, dr_curve, threshold, weak_threshold
             )
