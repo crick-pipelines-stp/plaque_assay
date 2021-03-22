@@ -118,6 +118,7 @@ class Plate:
             "Plate_barcode",
             "Background Subtracted Plaque Area",
             "Percentage Infected",
+            "variant",
         ]
         temp_df = self.df.copy()
         df_wanted = temp_df[wanted_cols]

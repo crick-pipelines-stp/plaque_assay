@@ -9,7 +9,6 @@ from collections import defaultdict
 import pandas as pd
 
 from . import utils
-from .consts import NO_VIRUS_WELLS
 from .plate import Plate
 from .sample import Sample
 
@@ -20,6 +19,7 @@ class Experiment:
     def __init__(self, df):
         self.df = df
         self.experiment_name = df["Plate_barcode"].values[0][3:]
+        self.variant = df["variant"].values[0]
         self.plate_store = {name: Plate(df) for name, df in df.groupby("Plate_barcode")}
         self.df = pd.concat([plate.df for plate in self.plate_store.values()])
         self.sample_store = self.make_samples()
@@ -34,28 +34,11 @@ class Experiment:
         """docstring"""
         return self.plate_store.items()
 
-    def subtract_plaque_area_background(self, df):
-        """
-        This is done on an experiment-level rather than plate-level, so belongs here rather
-        than the Plate class.
-        - Calculate the median of "Normalised Plaque area" fo no virus wells.
-        - Subtract median from "Normalised Plaque area" for each well and save
-          as "Background Subtracted Plaque Area"
-        """
-        raise NotImplementedError("now moved to Plate class")
-        #feature = "Normalised Plaque area"
-        #new_colname = "Background Subtracted Plaque Area"
-        #no_virus_bool = df.Well.isin(NO_VIRUS_WELLS)
-        #background = df[no_virus_bool][feature].median()
-        #df[new_colname] = df[feature] - background
-        #return df
-
     def make_samples(self):
         """
         create a dictionary of {sample_name: Sample}
         """
         sample_dict = dict()
-        # NOTE: "Well" might change to be a sample name in the future
         for name, group in self.df.groupby("Well"):
             sample_df = group[["Dilution", "Percentage Infected"]]
             sample_dict[name] = Sample(name, sample_df)
@@ -121,6 +104,7 @@ class Experiment:
             }
         )
         df["experiment"] = self.experiment_name
+        df["variant"] = self.variant
         return df
 
     def save_failures_as_dataframe(self, output_dir):
@@ -170,6 +154,7 @@ class Experiment:
                 statuses.append(None)
         df = pd.DataFrame({"well": wells, "ic50": ic50s, "status": statuses})
         df["experiment"] = self.experiment_name
+        df["variant"] = self.variant
         return df
 
     def save_results_as_dataframe(self, output_dir):
@@ -196,6 +181,7 @@ class Experiment:
             df = plate_object.get_normalised_data()
             dataframes.append(df)
         df_concat = pd.concat(dataframes)
+        df_concat["variant"] = self.variant
         return df_concat
 
     def save_normalised_data(self, output_dir, concatenate=True):
@@ -230,6 +216,7 @@ class Experiment:
             param_dict["param_hillslope"].append(hillslope)
         df = pd.DataFrame(param_dict)
         df["experiment"] = self.experiment_name
+        df["variant"] = self.variant
         return df
 
     def get_percentage_infected_dataframe(self):
@@ -243,6 +230,7 @@ class Experiment:
             dataframe_list.append(sample_df)
         df = pd.concat(dataframe_list)
         df["experiment"] = self.experiment_name
+        df["variant"] = self.variant
         # remove capitalization and whitespace from column names
         df.columns = [i.replace(" ", "_").lower() for i in df.columns]
         return df

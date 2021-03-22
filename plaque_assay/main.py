@@ -22,13 +22,16 @@ def create_engine(test=True):
     return engine
 
 
+def create_local_engine():
+    engine = sqlalchemy.create_engine("sqlite:////home/warchas/test_variant_plaque_assay_db.sqlite")
+    return engine
+
 def run(plate_list, plate=96):
-    Session = sqlalchemy.orm.sessionmaker(bind=create_engine())
+    Session = sqlalchemy.orm.sessionmaker(bind=create_local_engine())
     session = Session()
     dataset = data.read_data_from_list(plate_list, plate)
     indexfiles = data.read_indexfiles_from_list(plate_list)
     experiment = Experiment(dataset)
-    workflow_id = int(experiment.experiment_name)
     normalised_data = experiment.get_normalised_data()
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
@@ -40,7 +43,8 @@ def run(plate_list, plate=96):
     lims_db.upload_final_results(final_results)
     lims_db.upload_failures(failures)
     lims_db.upload_model_parameters(model_parameters)
+    workflow_id = int(experiment.experiment_name)
     if plate == 384:
         lims_db.upload_barcode_changes_384(workflow_id)
-    lims_db.update_status(workflow_id)
+    #lims_db.update_workflow_tracking(workflow_id)
     lims_db.commit()

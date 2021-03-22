@@ -7,6 +7,7 @@ import numpy as np
 from . import utils
 from . import consts
 from . import db_models
+from .variant import Variant
 
 
 def read_data_from_list(plate_list, plate=96):
@@ -73,7 +74,10 @@ def read_data_from_list_384(plate_list):
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)
     df_concat = pd.concat(dataframes)
-    # mock barcodes NOTE: before changing wells
+    # NOTE: get variant from barcode **before** changing plate barcodes to 96-well versions
+    variant = Variant().get_variant_from_barcode(plate_barcode)
+    df_concat["variant"] = variant
+    # NOTE: mock barcodes before changing wells
     df_concat["Plate_barcode"] = utils.mock_384_barcode(
         existing_barcodes=df_concat["Plate_barcode"], wells=df_concat["Well"]
     )
@@ -113,6 +117,7 @@ def read_data_from_directory(data_dir):
 
 
 def read_indexfiles_from_list(plate_list):
+    variant = Variant().get_variant_from_plate_path_list(plate_list)
     dataframes = []
     for path in plate_list:
         df = pd.read_csv(os.path.join(path, "indexfile.txt"), sep="\t")
@@ -120,6 +125,7 @@ def read_indexfiles_from_list(plate_list):
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)
     df_concat = pd.concat(dataframes)
+    df_concat["variant"] = variant
     # remove annoying empty "Unnamed: 16" column
     to_rm = [col for col in df_concat.columns if col.startswith("Unnamed:")]
     df_concat.drop(to_rm, axis=1, inplace=True)
@@ -179,6 +185,7 @@ class DatabaseUploader:
             "Well": "well",
             "PlateNum": "plate_num",
             "Plate_barcode": "plate_barcode",
+            "variant": "variant",
             # "Background Subtracted Plaque Area": "background_subtracted_plaque_area",
         }
         plate_results_dataset.rename(columns=rename_dict, inplace=True)
@@ -214,6 +221,7 @@ class DatabaseUploader:
             "PositionY [m]": "positiony",
             "Time Stamp": "time_stamp",
             "Plate_barcode": "plate_barcode",
+            "variant": "variant",  # not renamed, just to keep it
         }
         indexfiles_dataset.rename(columns=rename_dict, inplace=True)
         # filter to only desired columns
@@ -240,6 +248,7 @@ class DatabaseUploader:
             "Plate_barcode": "plate_barcode",
             "Background_subtracted_plaque_area": "background_subtracted_plaque_area",
             "Percentage_infected": "percentage_infected",
+            "variant": "variant",  # not renamed, just to keep
         }
         norm_results.rename(columns=rename_dict, inplace=True)
         norm_results = norm_results[list(rename_dict.values())]
@@ -260,6 +269,7 @@ class DatabaseUploader:
         results["master_plate"] = None
         # get workflow_id
         assert results["experiment"].nunique() == 1
+        assert results["variant"].nunique() == 1
         results["workflow_id"] = results["experiment"].astype(int)
         # can't store NaN in mysql, to convert to None which are stored as null
         results = results.replace({np.nan: None})

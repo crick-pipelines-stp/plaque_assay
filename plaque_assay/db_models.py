@@ -39,6 +39,7 @@ class NE_workflow_tracking(Base):
     end_date = sql.Column(sql.TIMESTAMP)
     status = sql.Column(sql.String(45))
     workflow_id = sql.Column(sql.Integer, nullable=False)
+    variant = sql.Column(sql.String(45))
 
 
 class NE_raw_index(Base):
@@ -62,6 +63,7 @@ class NE_raw_index(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_raw_results(Base):
@@ -90,6 +92,7 @@ class NE_raw_results(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_normalized_results(Base):
@@ -105,6 +108,7 @@ class NE_normalized_results(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_final_results(Base):
@@ -118,6 +122,7 @@ class NE_final_results(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_failed_results(Base):
@@ -131,6 +136,7 @@ class NE_failed_results(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_model_parameters(Base):
@@ -144,6 +150,7 @@ class NE_model_parameters(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+    variant = sql.Column(sql.String(45))
 
 
 class NE_assay_plate_tracker_384(Base):
