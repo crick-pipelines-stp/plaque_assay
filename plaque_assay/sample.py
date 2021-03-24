@@ -68,11 +68,11 @@ class Sample:
         failed_count = 0
         difference_threshold = 25
         for _, group in self.data.groupby("Dilution"):
-            assert group.shape[0] == 2
-            x, y = group["Percentage Infected"].values
-            difference = abs(x - y)
-            if difference >= difference_threshold:
-                failed_count += 1
+            if group.shape[0] == 2:
+                x, y = group["Percentage Infected"].values
+                difference = abs(x - y)
+                if difference >= difference_threshold:
+                    failed_count += 1
         if failed_count >= 2:
             # is a well failure
             duplicate_failure = failure.WellFailure(
