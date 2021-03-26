@@ -67,6 +67,9 @@ class Sample:
         """
         failed_count = 0
         difference_threshold = qc_criteria.duplicate_difference
+        if self.ic50_pretty == "no inhibition":
+            # don't flag for bad replicates if there's no inhbition
+            return None
         for _, group in self.data.groupby("Dilution"):
             if group.shape[0] == 2:
                 x, y = group["Percentage Infected"].values

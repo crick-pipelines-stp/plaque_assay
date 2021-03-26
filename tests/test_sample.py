@@ -45,6 +45,19 @@ perc_bad_replicates = [
 # some bad data which still triggers a model fit, but fails
 perc_model_fail = [90, 79, 67, 57, 55, 41, 48, 134]
 
+
+perc_bad_no_inhibition = [
+    100.556437,
+    140.200186,
+    100.246412,
+    80.365569,
+    100.787072,
+    160.955933,
+    100.517334,
+    90.988952,
+]
+
+
 good_test_data = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_good})
 
 
@@ -54,6 +67,11 @@ bad_replicate_test_data = pd.DataFrame(
 
 model_failure_data = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_model_fail}
+)
+
+
+bad_replicate_no_inhib_data = pd.DataFrame(
+    {"Dilution": dilutions, "Percentage Infected": perc_bad_no_inhibition}
 )
 
 
@@ -71,6 +89,13 @@ def test_check_duplicate_differences():
         i.reason.startswith("2 or more duplicates differ")
         for i in sample_bad_rep.failures
     )
+
+
+def test_check_duplicate_differnces_no_inhibition():
+    """Don't flag duplicate difference if the result is "no inhibition"""
+    sample = Sample(sample_name="A01", data=bad_replicate_no_inhib_data)
+    assert len(sample.failures) == 0
+    assert sample.ic50_pretty == "no inhibition"
 
 
 def test_check_for_model_fit_failure():
