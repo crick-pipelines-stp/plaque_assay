@@ -54,5 +54,5 @@ def run(plate_list, plate=384):
     workflow_id = int(experiment.experiment_name)
     if plate == 384:
         lims_db.upload_barcode_changes_384(workflow_id)
-    # lims_db.update_workflow_tracking(workflow_id)
+    lims_db.update_workflow_tracking(workflow_id)
     lims_db.commit()

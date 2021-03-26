@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 import os
 
@@ -341,4 +342,15 @@ class DatabaseUploader:
         Update the status in NE_workflow_tracking
         """
         # set status to "complete"
-        raise NotImplementedError()
+        # set final_results_upload to current datetime
+        # set end_date to current datetime
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        self.session\
+            .query(db_models.NE_workflow_tracking)\
+            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)\
+            .update({
+                db_models.NE_workflow_tracking.status: "complete",
+                db_models.NE_workflow_tracking.end_date: timestamp,
+                db_models.NE_workflow_tracking.final_results_upload: timestamp,
+            })
+
