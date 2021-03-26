@@ -3,6 +3,8 @@ import os
 import string
 import math
 
+from .db_models import NE_available_strains
+
 
 RESULT_TO_INT = {
     "failed to fit model": -999,
@@ -125,3 +127,49 @@ def mock_384_barcode(existing_barcodes, wells):
         new_barcode = f"A{dilution_int}{replicate_int}{workflow_id}"
         new_barcodes.append(new_barcode)
     return new_barcodes
+
+
+def get_prefix_from_full_path(full_path):
+    """docstring"""
+    basename = os.path.basename(full_path)
+    barcode = basename.split("__")[0]
+    prefix = barcode[:3]
+    return prefix
+
+
+def get_variant_from_plate_list(plate_list, session):
+    """
+    Fetch variant name from the LIMS database.
+    This uses the plate barcodes within the plate_list which contain
+    prefixes which are matched to a variant name in the NE_available_strains
+    table in the LIMS database.
+
+    Arguments:
+    ----------
+    plate_list: list
+    session: sqlalchemy ORM Session
+
+    Returns:
+    --------
+    string
+    """
+    # get both prefixes from the plate_list
+    assert len(plate_list) == 2, "expected plate_list to have 2 paths"
+    prefixes = [get_prefix_from_full_path(i) for i in plate_list]
+    prefix_1, prefix_2 = sorted(prefixes)
+    # query table to return variant name (mutant_strain) for entry matching
+    # both the plate barcode prefixes
+    return_val = (
+        session.query(NE_available_strains.mutant_strain)
+        .filter(
+            NE_available_strains.plate_id_1 == prefix_1,
+            NE_available_strains.plate_id_2 == prefix_2,
+        )
+        .first()
+    )
+    if len(return_val) != 1:
+        raise RuntimeError(
+            "plate barcode prefixes do not match any known variants in the ",
+            f"LIMS database: {prefixes}",
+        )
+    return return_val.mutant_strain

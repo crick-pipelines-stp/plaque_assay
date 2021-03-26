@@ -4,6 +4,7 @@ import sqlalchemy
 
 from plaque_assay.experiment import Experiment
 from plaque_assay import data
+from plaque_assay import utils
 
 
 def create_engine(test=True):
@@ -23,14 +24,21 @@ def create_engine(test=True):
 
 
 def create_local_engine():
-    engine = sqlalchemy.create_engine("sqlite:////home/warchas/test_variant_plaque_assay_db.sqlite")
+    engine = sqlalchemy.create_engine(
+        "sqlite:////home/warchas/test_variant_plaque_assay_db.sqlite"
+    )
     return engine
 
-def run(plate_list, plate=96):
+
+def run(plate_list, plate=384):
     Session = sqlalchemy.orm.sessionmaker(bind=create_local_engine())
     session = Session()
     dataset = data.read_data_from_list(plate_list, plate)
     indexfiles = data.read_indexfiles_from_list(plate_list)
+    # add variant information to dataset and indexfiles dataframes
+    variant = utils.get_variant_from_plate_list(plate_list, session)
+    dataset["variant"] = variant
+    indexfiles["variant"] = variant
     experiment = Experiment(dataset)
     normalised_data = experiment.get_normalised_data()
     final_results = experiment.get_results_as_dataframe()
@@ -46,5 +54,5 @@ def run(plate_list, plate=96):
     workflow_id = int(experiment.experiment_name)
     if plate == 384:
         lims_db.upload_barcode_changes_384(workflow_id)
-    #lims_db.update_workflow_tracking(workflow_id)
+    # lims_db.update_workflow_tracking(workflow_id)
     lims_db.commit()

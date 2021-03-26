@@ -9,7 +9,7 @@ class NE_workflow_tracking(Base):
     __tablename__ = "NE_workflow_tracking"
     id = sql.Column(sql.Integer, primary_key=True)
     master_plate = sql.Column(sql.String(45), nullable=False)
-    master_plate_id = sql.Column(sql.Integer, sql.ForeignKey('NE_master_RF_plate.id'))
+    master_plate_id = sql.Column(sql.Integer, sql.ForeignKey("NE_master_RF_plate.id"))
     assay_plate_type = sql.Column(sql.String(45))
     start_date = sql.Column(sql.TIMESTAMP, nullable=False)
     dilution_plate_10 = sql.Column(sql.String(45))
@@ -162,3 +162,11 @@ class NE_assay_plate_tracker_384(Base):
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
+
+
+class NE_available_strains(Base):
+    __tablename__ = "NE_available_strains"
+    id = sql.Column(sql.Integer, primary_key=True)
+    mutant_strain = sql.Column(sql.String(45))
+    plate_id_1 = sql.Column(sql.String(5))
+    plate_id_2 = sql.Column(sql.String(5))

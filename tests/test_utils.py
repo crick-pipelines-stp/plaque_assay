@@ -51,3 +51,10 @@ def test_mock_384_barcode():
     wells = ["A01", "A02", "A03"]
     output = utils.mock_384_barcode(existing_barcodes, wells)
     assert output == ["A41900001", "A22000001", "A42000001"]
+
+
+def test_get_prefix_from_full_path():
+    path = "/path/to/plate/S01000001__2021_01_01T00_00_00-Measuremment 1"
+    assert utils.get_prefix_from_full_path(path) == "S01"
+    path = "/path/to/plate/S12000001__2021_01_01T00_00_00-Measuremment 1"
+    assert utils.get_prefix_from_full_path(path) == "S12"

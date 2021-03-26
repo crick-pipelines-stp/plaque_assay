@@ -66,7 +66,7 @@ class Sample:
         a QC well failure.
         """
         failed_count = 0
-        difference_threshold = 25
+        difference_threshold = qc_criteria.duplicate_difference
         for _, group in self.data.groupby("Dilution"):
             if group.shape[0] == 2:
                 x, y = group["Percentage Infected"].values
@@ -78,7 +78,7 @@ class Sample:
             duplicate_failure = failure.WellFailure(
                 well=self.sample_name,
                 plate="DILUTION SERIES",
-                reason=f"2 or more duplicates differ by >= {difference_threshold} % infected"
+                reason=f"2 or more duplicates differ by >= {difference_threshold} % infected",
             )
             self.failures.append(duplicate_failure)
 
@@ -90,7 +90,7 @@ class Sample:
             model_fit_failure = failure.WellFailure(
                 well=self.sample_name,
                 plate="DILUTION SERIES",
-                reason="failed to fit model to data points"
+                reason="failed to fit model to data points",
             )
             self.failures.append(model_fit_failure)
 

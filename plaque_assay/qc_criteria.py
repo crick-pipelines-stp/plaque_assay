@@ -57,6 +57,11 @@ positive_control_low = 300
 positive_control_high = 800
 
 
+# the difference between replicates in "percentage infected"
+# over which, the duplicates will be considered too far apart
+duplicate_difference = 37
+
+
 def print_criteria():
     output = textwrap.dedent(
         f"""

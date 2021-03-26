@@ -13,7 +13,7 @@ def dr_3(x, top, bottom, ec50):
 
 def dr_4(x, top, bottom, ec50, hill_slope):
     """4 parameter dose response curve"""
-    return (bottom - top) / (1 + (x / ec50)**hill_slope)
+    return (bottom - top) / (1 + (x / ec50) ** hill_slope)
 
 
 def find_intersect_on_curve(x_min, x_max, curve, intersect=50):

@@ -7,7 +7,6 @@ import numpy as np
 from . import utils
 from . import consts
 from . import db_models
-from .variant import Variant
 
 
 def read_data_from_list(plate_list, plate=96):
@@ -58,6 +57,7 @@ def read_data_from_list_384(plate_list):
           are re-labelled to appear from 4 different 96 well plates.
     """
     dataframes = []
+    barcodes = []
     for path in plate_list:
         df = pd.read_csv(
             # NOTE: might not always be Evaluation1
@@ -66,6 +66,7 @@ def read_data_from_list_384(plate_list):
             sep="\t",
         )
         plate_barcode = path.split(os.sep)[-1].split("__")[0]
+        barcodes.append(plate_barcode)
         logging.info("plate barcode detected as %s", plate_barcode)
         well_labels = []
         for row, col in df[["Row", "Column"]].itertuples(index=False):
@@ -74,9 +75,6 @@ def read_data_from_list_384(plate_list):
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)
     df_concat = pd.concat(dataframes)
-    # NOTE: get variant from barcode **before** changing plate barcodes to 96-well versions
-    variant = Variant().get_variant_from_barcode(plate_barcode)
-    df_concat["variant"] = variant
     # NOTE: mock barcodes before changing wells
     df_concat["Plate_barcode"] = utils.mock_384_barcode(
         existing_barcodes=df_concat["Plate_barcode"], wells=df_concat["Well"]
@@ -117,7 +115,6 @@ def read_data_from_directory(data_dir):
 
 
 def read_indexfiles_from_list(plate_list):
-    variant = Variant().get_variant_from_plate_path_list(plate_list)
     dataframes = []
     for path in plate_list:
         df = pd.read_csv(os.path.join(path, "indexfile.txt"), sep="\t")
@@ -125,7 +122,6 @@ def read_indexfiles_from_list(plate_list):
         df["Plate_barcode"] = plate_barcode
         dataframes.append(df)
     df_concat = pd.concat(dataframes)
-    df_concat["variant"] = variant
     # remove annoying empty "Unnamed: 16" column
     to_rm = [col for col in df_concat.columns if col.startswith("Unnamed:")]
     df_concat.drop(to_rm, axis=1, inplace=True)
@@ -286,7 +282,7 @@ class DatabaseUploader:
             assert failures["experiment"].nunique() == 1
             failures["workflow_id"] = failures["experiment"].astype(int)
             # FIXME: doesn't work with multiple well in plate failures
-            #failures["well"] = utils.unpad_well_col(failures["well"])
+            # failures["well"] = utils.unpad_well_col(failures["well"])
             self.session.bulk_insert_mappings(
                 db_models.NE_failed_results, failures.to_dict(orient="records")
             )
