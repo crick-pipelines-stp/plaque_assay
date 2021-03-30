@@ -60,13 +60,15 @@ def calc_heuristics_dilutions(group, threshold, weak_threshold):
     if all(avg.values <= threshold):
         result = "complete inhibition"
     try:
-        if avg[2560] <= threshold and avg[2560] <= threshold:
+        # if 2 most dilute values are below threshold, then
+        # label it as complete inhibition
+        if avg[2560] <= threshold and avg[640] <= threshold:
             result = "complete inhibition"
     except KeyError:
         # missing this dilution, possibly removed due to high-background
         try:
             # try the next dilution
-            if avg[640] <= threshold and avg[640] <= threshold:
+            if avg[640] <= threshold and avg[160] <= threshold:
                 result = "complete inhibition"
         except KeyError:
             # if this returns a KeyError aswell we're missing 2 dilutions
