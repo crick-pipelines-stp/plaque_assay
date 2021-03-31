@@ -344,7 +344,7 @@ class DatabaseUploader:
         # set status to "complete"
         # set final_results_upload to current datetime
         # set end_date to current datetime
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now(timezone.utc)
         self.session\
             .query(db_models.NE_workflow_tracking)\
             .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)\
