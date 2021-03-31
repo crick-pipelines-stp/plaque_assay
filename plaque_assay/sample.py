@@ -67,8 +67,9 @@ class Sample:
         """
         failed_count = 0
         difference_threshold = qc_criteria.duplicate_difference
-        if self.ic50_pretty == "no inhibition":
+        if self.ic50_pretty in ("no inhibition", "failed to fit model"):
             # don't flag for bad replicates if there's no inhbition
+            # or aleady failed model fit
             return None
         for _, group in self.data.groupby("Dilution"):
             if group.shape[0] == 2:
