@@ -73,8 +73,7 @@ class Plate:
 
     def subtract_plaque_area_background(self, df):
         """
-        This is done on an experiment-level rather than plate-level, so belongs here rather
-        than the Plate class.
+        This is now done on a plate-by-plate basis.
         - Calculate the median of "Normalised Plaque area" fo no virus wells.
         - Subtract median from "Normalised Plaque area" for each well and save
           as "Background Subtracted Plaque Area"
