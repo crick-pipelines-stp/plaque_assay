@@ -3,6 +3,7 @@ import os
 import sqlalchemy
 
 from plaque_assay.experiment import Experiment
+from plaque_assay.errors import AlreadyUploadedError, DatabaseCredentialError
 from plaque_assay import data
 from plaque_assay import utils
 
@@ -15,7 +16,7 @@ def create_engine(test=True):
         host = os.environ.get("NE_HOST_PROD")
     password = os.environ.get("NE_PASSWORD")
     if None in (user, host, password):
-        raise RuntimeError(
+        raise DatabaseCredentialError(
             "db credentials not found in environent.",
             "Need to set NE_USER, NE_HOST_{TEST,PROD}, NE_PASSWORD",
         )
@@ -40,11 +41,16 @@ def run(plate_list, plate=384):
     dataset["variant"] = variant
     indexfiles["variant"] = variant
     experiment = Experiment(dataset)
+    workflow_id = int(experiment.experiment_name)
     normalised_data = experiment.get_normalised_data()
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
     model_parameters = experiment.get_model_parameters()
     lims_db = data.DatabaseUploader(session)
+    if lims_db.already_uploaded(workflow_id, variant):
+        raise AlreadyUploadedError(
+            f"{workflow_id} {variant} already have results in the database"
+        )
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
     lims_db.upload_normalised_results(normalised_data)

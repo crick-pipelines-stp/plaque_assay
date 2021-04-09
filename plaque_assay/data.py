@@ -158,6 +158,35 @@ class DatabaseUploader:
     def commit(self):
         self.session.commit()
 
+    def already_uploaded(self, workflow_id, variant):
+        """
+        Check if the results for a given workflow_id and variant
+        have already been uploaded.
+
+        As results are uploaded all-or-nothing, we can just check one of the
+        results tables for the presence of the supplied workflow_id and
+        variant, rather than each of the several results tables.
+
+        Parameters:
+        -----------
+        workflow_id: int
+        variant: string
+
+        Returns:
+        --------
+        bool
+        """
+        result = (
+            self.session
+            .query(db_models.NE_final_results)
+            .filter(
+                db_models.NE_final_results.workflow_id == workflow_id,
+                db_models.NE_final_results.variant == variant,
+            )
+            .first()
+        )
+        return result is not None
+
     def upload_plate_results(self, plate_results_dataset):
         """upload raw concatenated data into database"""
         # TODO: check csv matches master plate selected in NE_workflow_tracking
