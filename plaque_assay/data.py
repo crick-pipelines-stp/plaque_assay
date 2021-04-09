@@ -187,6 +187,45 @@ class DatabaseUploader:
         )
         return result is not None
 
+    def is_final_upload(self, workflow_id, variant):
+        """
+        This determines if a given workflow_id and variant are the last
+        to be uploaded for that variant.
+
+        More description here.
+
+        Parameters:
+        -----------
+        workflow_id: int
+        variant: string
+
+        Returns:
+        ---------
+        bool
+        """
+        # get expected number of variants from NE_workflow_tracking
+        expected = (
+            self.session
+            .query(db_models.NE_workflow_tracking)
+            .filter(
+                db_models.NE_workflow_tracking.workflow_id == workflow_id,
+                db_models.NE_workflow_tracking.variant == variant
+            )
+            .first()
+        )
+        # get number of uploaded variants from NE_final_results
+        current_n_variants = (
+            self.session
+            .query(
+                db_models.NE_final_results.workflow_id,
+                db_models.NE_final_results.variant
+            )
+            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)
+            .distinct()
+            .count()
+        )
+        return expected.no_of_variants - current_n_variants == 1
+
     def upload_plate_results(self, plate_results_dataset):
         """upload raw concatenated data into database"""
         # TODO: check csv matches master plate selected in NE_workflow_tracking
@@ -368,7 +407,8 @@ class DatabaseUploader:
 
     def update_workflow_tracking(self, workflow_id):
         """
-        Update the status in NE_workflow_tracking
+        Update the status in NE_workflow_tracking indicating
+        the analysis for a workflow is complete.
         """
         # set status to "complete"
         # set final_results_upload to current datetime
