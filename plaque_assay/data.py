@@ -217,11 +217,18 @@ class DatabaseUploader:
                 db_models.NE_final_results.workflow_id,
                 db_models.NE_final_results.variant
             )
-            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)
+            .filter(db_models.NE_final_results.workflow_id == workflow_id)
             .distinct()
             .count()
         )
-        return expected.no_of_variants - current_n_variants == 1
+        is_final = int(expected.no_of_variants) - int(current_n_variants) == 1
+        if is_final:
+            logging.info(f"Final variant upload, marking workflow {workflow_id} as complete")
+        else:
+            logging.info(
+                f"Not final variant upload for workflow {workflow_id}, this is variant {current_n_variants+1}/{expected.no_of_variants}"
+            )
+        return is_final
 
     def upload_plate_results(self, plate_results_dataset):
         """upload raw concatenated data into database"""
