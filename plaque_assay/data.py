@@ -207,10 +207,7 @@ class DatabaseUploader:
         expected = (
             self.session
             .query(db_models.NE_workflow_tracking)
-            .filter(
-                db_models.NE_workflow_tracking.workflow_id == workflow_id,
-                db_models.NE_workflow_tracking.variant == variant
-            )
+            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)
             .first()
         )
         # get number of uploaded variants from NE_final_results
