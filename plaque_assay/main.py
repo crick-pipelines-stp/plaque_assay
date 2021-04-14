@@ -32,7 +32,8 @@ def create_local_engine():
 
 
 def run(plate_list, plate=384):
-    Session = sqlalchemy.orm.sessionmaker(bind=create_local_engine())
+    engine = create_engine(test=False)
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     dataset = data.read_data_from_list(plate_list, plate)
     indexfiles = data.read_indexfiles_from_list(plate_list)
@@ -49,7 +50,7 @@ def run(plate_list, plate=384):
     lims_db = data.DatabaseUploader(session)
     if lims_db.already_uploaded(workflow_id, variant):
         raise AlreadyUploadedError(
-            f"{workflow_id} {variant} already have results in the database"
+            f"workflow:{workflow_id} variant:{variant} already have results in the database"
         )
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
