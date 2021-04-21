@@ -31,11 +31,11 @@ def create_local_engine():
     return engine
 
 
-def run(plate_list, plate=384):
+def run(plate_list):
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
-    dataset = data.read_data_from_list(plate_list, plate)
+    dataset = data.read_data_from_list(plate_list)
     indexfiles = data.read_indexfiles_from_list(plate_list)
     # add variant information to dataset and indexfiles dataframes
     variant = utils.get_variant_from_plate_list(plate_list, session)

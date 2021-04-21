@@ -10,48 +10,7 @@ from . import consts
 from . import db_models
 
 
-def read_data_from_list(plate_list, plate=96):
-    plate = int(plate)
-    if plate == 96:
-        return read_data_from_list_96(plate_list)
-    elif plate == 384:
-        return read_data_from_list_384(plate_list)
-    else:
-        raise ValueError("invalid value for plate")
-
-
-def read_data_from_list_96(plate_list):
-    """
-    read in data from plate list and assign dilution values by plate barcode
-    """
-    plate_name_dict = {
-        os.path.abspath(i): utils.get_dilution_from_barcode(i) for i in plate_list
-    }
-    dataframes = []
-    for path, plate_num in plate_name_dict.items():
-        df = pd.read_csv(
-            # NOTE: might not always be Evaluation1
-            os.path.join(path, "Evaluation1/PlateResults.txt"),
-            skiprows=8,
-            sep="\t",
-        )
-        plate_barcode = path.split(os.sep)[-1].split("__")[0]
-        logging.info("plate barcode detected as %s", plate_barcode)
-        df["Dilution"] = consts.plate_mapping[plate_num]
-        # add well labels to dataframe
-        well_labels = []
-        for row, col in df[["Row", "Column"]].itertuples(index=False):
-            well_labels.append(utils.row_col_to_well(row, col))
-        df["Well"] = well_labels
-        df["PlateNum"] = plate_num
-        df["Plate_barcode"] = plate_barcode
-        dataframes.append(df)
-    df_concat = pd.concat(dataframes)
-    logging.debug("input data shape: %s", df_concat.shape)
-    return df_concat
-
-
-def read_data_from_list_384(plate_list):
+def read_data_from_list(plate_list):
     """
     Read in data from plate list and assign dilution values by well position.
     NOTE: this will mock the data so the 4 dilutions on a single 384-well plate
@@ -88,13 +47,8 @@ def read_data_from_list_384(plate_list):
     return df_concat
 
 
-def get_plate_list(data_dir, plate=96):
-    if plate == 96:
-        n_expected_plates = 8
-    elif plate == 384:
-        n_expected_plates = 2
-    else:
-        raise ValueError("invalid value for 'plate'")
+def get_plate_list(data_dir):
+    n_expected_plates = 2
     plate_list = [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
     if len(plate_list) == n_expected_plates:
         logging.debug("plate list detected: %s", plate_list)
