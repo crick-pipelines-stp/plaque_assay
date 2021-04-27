@@ -1,5 +1,4 @@
 import os
-import warnings
 
 import sqlalchemy
 
@@ -7,12 +6,6 @@ from plaque_assay.experiment import Experiment
 from plaque_assay.errors import AlreadyUploadedError, DatabaseCredentialError
 from plaque_assay import data
 from plaque_assay import utils
-
-
-warnings.filterwarnings(
-    "ignore", message="invalid value encountered in power"
-
-)
 
 
 def create_engine(test=True):

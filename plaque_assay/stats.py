@@ -13,7 +13,10 @@ def dr_3(x, top, bottom, ec50):
 
 def dr_4(x, top, bottom, ec50, hill_slope):
     """4 parameter dose response curve"""
-    return (bottom - top) / (1 + (x / ec50) ** hill_slope)
+    # during optimisation numpy doesn't like raising negative numbers
+    # to a fractional power, this stops it spamming up the logs
+    with np.errstate(invalid="ignore"):
+        return (bottom - top) / (1 + (x / ec50) ** hill_slope)
 
 
 def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
