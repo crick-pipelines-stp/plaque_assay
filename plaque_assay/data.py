@@ -156,6 +156,7 @@ class DatabaseUploader:
         bool
         """
         # get expected number of variants from NE_workflow_tracking
+        # fmt: off
         expected = (
             self.session
             .query(db_models.NE_workflow_tracking)
@@ -168,10 +169,18 @@ class DatabaseUploader:
             .query(db_models.NE_final_results.variant)
             .filter(db_models.NE_final_results.workflow_id == workflow_id)
         )
+        # fmt: on
         current_n_variants = current_variants.count()
-        is_final = int(expected.no_of_variants) - int(current_n_variants) == 1
+        # NOTE: the sqlalchemy queries are reading from NE_final_results data
+        # that includes results from this session that have not yet been
+        # committed, and as is_final_upload() is called *after*
+        # upload_final_results(), we pretend the results are already in the
+        # database.
+        is_final = int(expected.no_of_variants) == int(current_n_variants)
         logging.debug(f"expected no. of variants: {expected.no_of_variants}")
-        logging.debug(f"current no. uploaded variants: {current_n_variants}: {current_variants}")
+        logging.debug(
+            f"current no. uploaded variants: {current_n_variants}: {current_variants}"
+        )
         if is_final:
             logging.info(
                 f"Final variant upload, marking workflow {workflow_id} as complete"
@@ -370,12 +379,15 @@ class DatabaseUploader:
         # set final_results_upload to current datetime
         # set end_date to current datetime
         timestamp = datetime.now(timezone.utc)
-        self.session.query(db_models.NE_workflow_tracking).filter(
-            db_models.NE_workflow_tracking.workflow_id == workflow_id
-        ).update(
-            {
-                db_models.NE_workflow_tracking.status: "complete",
-                db_models.NE_workflow_tracking.end_date: timestamp,
-                db_models.NE_workflow_tracking.final_results_upload: timestamp,
-            }
-        )
+        # fmt: off
+        self.session\
+            .query(db_models.NE_workflow_tracking)\
+            .filter( db_models.NE_workflow_tracking.workflow_id == workflow_id)\
+            .update(
+                {
+                    db_models.NE_workflow_tracking.status: "complete",
+                    db_models.NE_workflow_tracking.end_date: timestamp,
+                    db_models.NE_workflow_tracking.final_results_upload: timestamp,
+                }
+            )
+        # fmt: on
