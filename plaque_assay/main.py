@@ -58,6 +58,6 @@ def run(plate_list):
     lims_db.upload_final_results(final_results)
     lims_db.upload_failures(failures)
     lims_db.upload_model_parameters(model_parameters)
-    if lims_db.is_final_upload(workflow_id, variant):
+    if lims_db.is_final_upload(workflow_id):
         lims_db.update_workflow_tracking(workflow_id)
     lims_db.commit()

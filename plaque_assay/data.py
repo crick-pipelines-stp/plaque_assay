@@ -131,8 +131,7 @@ class DatabaseUploader:
         bool
         """
         result = (
-            self.session
-            .query(db_models.NE_final_results)
+            self.session.query(db_models.NE_final_results)
             .filter(
                 db_models.NE_final_results.workflow_id == workflow_id,
                 db_models.NE_final_results.variant == variant,
@@ -141,17 +140,16 @@ class DatabaseUploader:
         )
         return result is not None
 
-    def is_final_upload(self, workflow_id, variant):
+    def is_final_upload(self, workflow_id):
         """
         This determines if a given workflow_id and variant are the last
-        to be uploaded for that variant.
+        to be uploaded for that workflow_id.
 
         More description here.
 
         Parameters:
         -----------
         workflow_id: int
-        variant: string
 
         Returns:
         ---------
@@ -165,19 +163,19 @@ class DatabaseUploader:
             .first()
         )
         # get number of uploaded variants from NE_final_results
-        current_n_variants = (
+        current_variants = (
             self.session
-            .query(
-                db_models.NE_final_results.workflow_id,
-                db_models.NE_final_results.variant
-            )
+            .query(db_models.NE_final_results.variant)
             .filter(db_models.NE_final_results.workflow_id == workflow_id)
-            .distinct()
-            .count()
         )
+        current_n_variants = current_variants.count()
         is_final = int(expected.no_of_variants) - int(current_n_variants) == 1
+        logging.debug(f"expected no. of variants: {expected.no_of_variants}")
+        logging.debug(f"current no. uploaded variants: {current_n_variants}: {current_variants}")
         if is_final:
-            logging.info(f"Final variant upload, marking workflow {workflow_id} as complete")
+            logging.info(
+                f"Final variant upload, marking workflow {workflow_id} as complete"
+            )
         else:
             logging.info(
                 f"Not final variant upload for workflow {workflow_id}, this is variant {current_n_variants+1}/{expected.no_of_variants}"
@@ -372,12 +370,12 @@ class DatabaseUploader:
         # set final_results_upload to current datetime
         # set end_date to current datetime
         timestamp = datetime.now(timezone.utc)
-        self.session\
-            .query(db_models.NE_workflow_tracking)\
-            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)\
-            .update({
+        self.session.query(db_models.NE_workflow_tracking).filter(
+            db_models.NE_workflow_tracking.workflow_id == workflow_id
+        ).update(
+            {
                 db_models.NE_workflow_tracking.status: "complete",
                 db_models.NE_workflow_tracking.end_date: timestamp,
                 db_models.NE_workflow_tracking.final_results_upload: timestamp,
-            })
-
+            }
+        )
