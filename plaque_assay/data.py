@@ -187,7 +187,7 @@ class DatabaseUploader:
             )
         else:
             logging.info(
-                f"Not final variant upload for workflow {workflow_id}, this is variant {current_n_variants+1}/{expected.no_of_variants}"
+                f"Not final variant upload for workflow {workflow_id}, this is variant {current_n_variants}/{expected.no_of_variants}"
             )
         return is_final
 
