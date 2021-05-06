@@ -170,7 +170,7 @@ class DatabaseUploader:
             .filter(db_models.NE_final_results.workflow_id == workflow_id)
         )
         # fmt: on
-        current_n_variants = current_variants.count()
+        current_n_variants = current_variants.distinct().count()
         # NOTE: the sqlalchemy queries are reading from NE_final_results data
         # that includes results from this session that have not yet been
         # committed, and as is_final_upload() is called *after*
