@@ -177,7 +177,7 @@ class DatabaseUploader:
         # upload_final_results(), we pretend the results are already in the
         # database.
         is_final = int(expected.no_of_variants) == int(current_n_variants)
-        if int(current_n_variants) > int(expected_n_variants):
+        if int(current_n_variants) > int(expected.no_of_variants):
             raise RuntimeError(
                 f"unexpected no. of variants {current_n_variants}, expecting max of {expected.no_of_variants}"
             )
