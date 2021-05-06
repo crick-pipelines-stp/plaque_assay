@@ -170,13 +170,17 @@ class DatabaseUploader:
             .filter(db_models.NE_final_results.workflow_id == workflow_id)
         )
         # fmt: on
-        current_n_variants = current_variants.count()
+        current_n_variants = current_variants.distinct().count()
         # NOTE: the sqlalchemy queries are reading from NE_final_results data
         # that includes results from this session that have not yet been
         # committed, and as is_final_upload() is called *after*
         # upload_final_results(), we pretend the results are already in the
         # database.
         is_final = int(expected.no_of_variants) == int(current_n_variants)
+        if int(current_n_variants) > int(expected_n_variants):
+            raise RuntimeError(
+                f"unexpected no. of variants {current_n_variants}, expecting max of {expected.no_of_variants}"
+            )
         logging.debug(f"expected no. of variants: {expected.no_of_variants}")
         logging.debug(
             f"current no. uploaded variants: {current_n_variants}: {current_variants}"
