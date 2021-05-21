@@ -12,15 +12,56 @@ import matplotlib.pyplot as plt
 
 
 class Sample:
-    """
-    A Sample object holds the data for a sample across 4 concentrations
+    """Sample object holds the data for a sample across 4 concentrations
     including replicates.
+
+    Parameters
+    -----------
+    sample_name : string
+        sample name, typically well-label
+    data : pandas.DataFrame
+        2 column dataframe: [dilution, value]
+
+    Attributes
+    ----------
+    sample_name : str
+        Typically a well label e.g "A01".
+    data : pd.DataFrame
+        Dataframe containing results filtered to a single sample. Containing
+        2 columns: `dilution` and `value`.
+    failures : list
+        List containing potential `failures.WellFailures`. These include reasons
+        such as:
+
+            - invalid IC50 value if the sample is a positive control
+
+            - failing to fit a model
+
+            - discordant replicate values
+
+    is_positive_control : Bool
+        Whether or not the sample is a positive control or not.
+    ic50 : float
+        Calculated ic50 values.
+    ic50_pretty : float or str
+        Calculated IC50 value, but negative integer values that indicate
+        categories such as "complete inhbition" are converted to their
+        string representation.
+    model_params : array
+        Fitted model parameters from `scipy.optimize.curve_fit()` for
+        the 4-parameter dose-response model. These are
+        `(top, bottom, ic50, hillslope)`
+    fit_method : str
+        How the model was fitted, either through an heuristic or
+        via fitting a curve.
+
+    Methods
+    --------
+    plot()
     """
 
     def __init__(self, sample_name, data):
         """
-        data: pandas.DataFrame
-            2 column dataframe: [dilution, value]
         """
         self.sample_name = sample_name
         self.data = data
@@ -99,7 +140,12 @@ class Sample:
             self.failures.append(model_fit_failure)
 
     def plot(self):
-        """plot dilution with points and curve"""
+        """Simple static plot of points and fitted curve
+
+        Returns
+        --------
+        matplotlib.pyplot.plot
+        """
         plt.figure(figsize=[10, 6])
         plt.axhline(y=50, linestyle="--", color="grey")
         plt.scatter(1 / self.data["Dilution"], self.data["Percentage Infected"])
@@ -108,7 +154,7 @@ class Sample:
             x_min = self.data["Dilution"].min()
             x_max = self.data["Dilution"].max()
             curve = stats.dr_4(x, *self.model_params)
-            plt.plot(1 / x, curve, linestyle="--", label="3 param dose-response")
+            plt.plot(1 / x, curve, linestyle="--", label="4 param dose-response")
             plt.legend(loc="upper left")
             try:
                 intersect_x, intersect_y = stats.find_intersect_on_curve(

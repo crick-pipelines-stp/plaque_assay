@@ -1,3 +1,8 @@
+"""
+Data I/O
+"""
+
+
 from datetime import datetime, timezone
 import logging
 import os
@@ -11,10 +16,20 @@ from . import db_models
 
 
 def read_data_from_list(plate_list):
-    """
-    Read in data from plate list and assign dilution values by well position.
-    NOTE: this will mock the data so the 4 dilutions on a single 384-well plate
-          are re-labelled to appear from 4 different 96 well plates.
+    """Read in data from plate list and assign dilution values by well position.
+
+    Notes
+    ------
+    This will mock the data so the 4 dilutions on a single 384-well
+    plate are re-labelled to appear from 4 different 96 well plates.
+
+    Parameters
+    ----------
+    plate_list : list
+
+    Returns:
+    ---------
+    pandas.DataFrame
     """
     dataframes = []
     barcodes = []
@@ -48,6 +63,18 @@ def read_data_from_list(plate_list):
 
 
 def get_plate_list(data_dir):
+    """Get paths to plate directories
+
+    Parameters
+    ----------
+    data_dir : str
+        path to the directory containing the plate sub-directories
+
+    Returns
+    -------
+    list
+        list of 2 paths to plate directories
+    """
     n_expected_plates = 2
     plate_list = [os.path.join(data_dir, i) for i in os.listdir(data_dir)]
     if len(plate_list) == n_expected_plates:
@@ -62,14 +89,36 @@ def get_plate_list(data_dir):
 
 
 def read_data_from_directory(data_dir):
-    """
-    read actual barcoded plate directory
+    """Read actual barcoded plate directory
+
+    This gets a plate list from `data_dir`, and then
+    reads in data from the plate list into a single
+    DataFrame.
+
+    Parameters
+    -----------
+    data_dir : str
+
+    Returns
+    -------
+    pandas.DataFrame
     """
     plate_list = get_plate_list(data_dir)
     return read_data_from_list(plate_list)
 
 
 def read_indexfiles_from_list(plate_list):
+    """Read indexfiles from a plate list
+
+    Parameters
+    ------------
+    plate_list : list
+        list of paths to plate directories
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
     dataframes = []
     for path in plate_list:
         df = pd.read_csv(os.path.join(path, "indexfile.txt"), sep="\t")
@@ -87,29 +136,33 @@ def read_indexfiles_from_list(plate_list):
 
 
 def read_indexfiles_from_directory(data_dir):
+    """Return dataframe of indexfiles from a directory containing plates.
+
+    Parameters
+    -----------
+    data_dir : str
+
+    Returns
+    --------
+    pandas.DataFrame
+    """
     plate_list = get_plate_list(data_dir)
     return read_indexfiles_from_list(plate_list)
 
 
-def get_awaiting_raw(session, master_plate):
-    """
-    docstring
-    """
-    # FIXME: this table doesn't actually exist
-    awaiting_raw = (
-        session.query(db_models.NE_workflow_tracking)
-        .filter(db_models.NE_workflow_tracking.master_plate == master_plate)
-        .filter(db_models.NE_workflow_tracking.status == "raw_results")
-        .first()
-    )
-    return awaiting_raw
-
-
 class DatabaseUploader:
+    """
+    Attributes
+    ----------
+    session : sql.orm.session.Session
+        sqlalchemy session to LIMS serology database
+
+    """
     def __init__(self, session):
         self.session = session
 
     def commit(self):
+        """commit data to LIMS serology database"""
         self.session.commit()
 
     def already_uploaded(self, workflow_id, variant):
@@ -121,12 +174,12 @@ class DatabaseUploader:
         results tables for the presence of the supplied workflow_id and
         variant, rather than each of the several results tables.
 
-        Parameters:
+        Parameters
         -----------
-        workflow_id: int
-        variant: string
+        workflow_id : int
+        variant : str
 
-        Returns:
+        Returns
         --------
         bool
         """
@@ -142,18 +195,26 @@ class DatabaseUploader:
 
     def is_final_upload(self, workflow_id):
         """
-        This determines if a given workflow_id and variant are the last
-        to be uploaded for that workflow_id.
+        This determines if a given workflow_id is the last to be
+        uploaded for that workflow_id. This is determined by the
+        number of unique variants for a workflow_id currently in the
+        LIMS database. If this is 1 short of the expected number, then
+        we can determine the current upload is the final one.
 
-        More description here.
-
-        Parameters:
+        Parameters
         -----------
         workflow_id: int
 
-        Returns:
+        Returns
         ---------
         bool
+            whether or not this is the final upload
+
+        Raises
+        ------
+        RuntimeError
+            when trying to upload more variants than specified in the
+            workflow_tracking LIMS database table.
         """
         # get expected number of variants from NE_workflow_tracking
         # fmt: off
@@ -196,7 +257,20 @@ class DatabaseUploader:
         return is_final
 
     def upload_plate_results(self, plate_results_dataset):
-        """upload raw concatenated data into database"""
+        """Upload raw concatenated data into database.
+
+        This uploads the "raw" dataset into the LIMS serology database.
+        The data is largely what is exported from the Phenix with columns
+        renamed, some columns moved, some metadata columns added.
+
+        Parameters
+        ----------
+        plate_results_dataset: pandas.DataFrame
+
+        Returns:
+        ---------
+        None
+        """
         # TODO: check csv matches master plate selected in NE_workflow_tracking
         plate_results_dataset = plate_results_dataset.copy()
         rename_dict = {
@@ -237,7 +311,22 @@ class DatabaseUploader:
         )
 
     def upload_indexfiles(self, indexfiles_dataset):
-        """docstring"""
+        """Upload indexfiles from the Phenix into the database
+
+        This uploads the IndexFile dataset into the LIMS serology database,
+        which is kept because it contains the URLs to the images.
+
+        Some columns are removed, most are renamed, and a variant metadata
+        column is added.
+
+        Parameters
+        ----------
+        indexfiles_dataset : pandas.DataFrame
+
+        Returns
+        -------
+        None
+        """
         indexfiles_dataset = indexfiles_dataset.copy()
         rename_dict = {
             "Row": "row",
@@ -272,7 +361,20 @@ class DatabaseUploader:
             )
 
     def upload_normalised_results(self, norm_results):
-        """docstring"""
+        """Upload normalised results into the database.
+
+        Uploads the normalised data, consisting of 
+        `background_subtracted_plaque_area`, `percentage_infected` and
+        metadata, into the LIMS serology database.
+
+        Parameters
+        ----------
+        norm_results: pandas.DataFrame
+
+        Returns
+        -------
+        None
+        """
         norm_results = norm_results.copy()
         rename_dict = {
             "Well": "well",
@@ -297,7 +399,18 @@ class DatabaseUploader:
         )
 
     def upload_final_results(self, results):
-        """docstring"""
+        """Upload final results to database
+
+        Final results are mainly IC50 and metadata.
+
+        Parameters
+        -----------
+        results : pandas.DataFrame
+
+        Returns
+        -------
+        None
+        """
         results = results.copy()
         # TODO: double-check what master_plate is??
         results["master_plate"] = None
@@ -313,7 +426,16 @@ class DatabaseUploader:
         )
 
     def upload_failures(self, failures):
-        """docsring"""
+        """Upload failure information to database
+
+        Parameters
+        ----------
+        failures : pandas.DataFrame
+
+        Returns
+        -------
+        None
+        """
         failures = failures.copy()
         # FIXME: get workflow_id
         if failures.shape[0] > 0:
@@ -326,7 +448,16 @@ class DatabaseUploader:
             )
 
     def upload_model_parameters(self, model_parameters):
-        """docstring"""
+        """Upload model parameters to database
+
+        Parameters
+        -----------
+        model_parameters: pandas.DataFrame
+
+        Returns
+        --------
+        None
+        """
         model_parameters = model_parameters.copy()
         model_parameters.rename(columns={"experiment": "workflow_id"}, inplace=True)
         # can't store NaNs
@@ -336,48 +467,20 @@ class DatabaseUploader:
             db_models.NE_model_parameters, model_parameters.to_dict(orient="records")
         )
 
-    def upload_barcode_changes_384(self, workflow_id):
-        """docstring"""
-        replicates = [1, 2]
-        # NOTE: dilution numbers match the LIMS values rather than assay values
-        assay_plates = []
-        ap_10 = []
-        ap_40 = []
-        ap_160 = []
-        ap_640 = []
-        workflow_ids = []
-        for replicate in replicates:
-            assay_plate = f"AA{replicate}{workflow_id}"
-            assay_plates.append(assay_plate)
-            ap_10.append(f"A1{replicate}{workflow_id}")
-            ap_40.append(f"A2{replicate}{workflow_id}")
-            ap_160.append(f"A3{replicate}{workflow_id}")
-            ap_640.append(f"A4{replicate}{workflow_id}")
-            workflow_ids.append(workflow_id)
-        df = pd.DataFrame(
-            {
-                "assay_plate_384": assay_plates,
-                "ap_10": ap_10,
-                "ap_40": ap_40,
-                "ap_160": ap_160,
-                "ap_640": ap_640,
-                "workflow_id": workflow_ids,
-            }
-        )
-        self.session.bulk_insert_mappings(
-            db_models.NE_assay_plate_tracker_384, df.to_dict(orient="records")
-        )
-
-    def is_awaiting_results(self, workflow_id):
-        """
-        docstring
-        """
-        raise NotImplementedError()
-
     def update_workflow_tracking(self, workflow_id):
-        """
-        Update the status in NE_workflow_tracking indicating
-        the analysis for a workflow is complete.
+        """Update workflow_tracking table to indicate all variants for
+        a workflow have been uploaded.
+
+        This doesn't check that a workflow is complete, that is handled
+        by `DatabaseUploader.is_final_upload()`.
+
+        Parameters
+        -----------
+        workflow_id: int
+
+        Returns
+        -------
+        None
         """
         # set status to "complete"
         # set final_results_upload to current datetime

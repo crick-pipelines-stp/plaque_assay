@@ -1,3 +1,8 @@
+"""
+Stats and number crunching functions.
+"""
+
+
 import logging
 
 import numpy as np
@@ -7,12 +12,39 @@ from . import utils
 
 
 def dr_3(x, top, bottom, ec50):
-    """3 parameter dose response curve"""
+    """3 parameter dose response curve
+
+    Parameters
+    -----------
+    x : array-like
+    top : numeric
+    bottom : numeric
+    ec50 : numeric
+
+    Returns
+    --------
+    array-like
+        same shape as input `x`
+    """
     return bottom + x * (top - bottom) / (ec50 + x)
 
 
 def dr_4(x, top, bottom, ec50, hill_slope):
-    """4 parameter dose response curve"""
+    """4 parameter dose response curve
+
+    Parameters
+    -----------
+    x : array-like
+    top : numeric
+    bottom : numeric
+    ec50 : numeric
+    hill_slope : numeric
+
+    Returns
+    --------
+    array-like
+        same shape as input `x`
+    """
     # during optimisation numpy doesn't like raising negative numbers
     # to a fractional power, this stops it spamming up the logs
     with np.errstate(invalid="ignore"):
@@ -20,11 +52,24 @@ def dr_4(x, top, bottom, ec50, hill_slope):
 
 
 def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
-    """
+    """Find intersect of two curves.
+
     Really hacky way of finding intersect of two curves,
     used for finding dilution where percentage infection is 50%.
     In this case one of the curves is just a horizontal line where y = 50.
     TODO: solve this mathematically
+
+    Parameters
+    ----------
+    x_min : numeric
+    x_max : numeric
+    curve : array-like
+    intersect : numeric
+
+    Returns
+    --------
+    tuple
+        x, y values of intersect
     """
     x = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     line = np.full(x.shape, intersect)
@@ -38,6 +83,16 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
 def non_linear_model(x, y, func=dr_4):
     """
     fit non-linear least squares to the data
+
+    Parameters
+    ----------
+    x : numeric
+    y : numeric
+    func : Callable
+
+    Returns
+    --------
+    tuple
     """
     # initial guess at sensible parameters
     p0 = [0, 100, 0.015, 1]
@@ -49,8 +104,18 @@ def non_linear_model(x, y, func=dr_4):
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
-    """
-    simple heuristics based on the values without model fitting
+    """Simple heuristics based on the values without model fitting
+
+    Parameters
+    ----------
+    group
+    threshold
+    weak_threshold
+
+    Returns
+    --------
+    numeric
+        IC50 value, or negative integer indicating an error code
     """
     result = None
     avg = group.groupby("Dilution")["Percentage Infected"].mean()
@@ -102,6 +167,21 @@ def calc_heuristics_curve(name, x, y, threshold, weak_threshold):
     """
     heuristics based on the model fit where we cannot calculate the intercept
     at the threshold
+
+    Parameters
+    -----------
+    name : str
+        name of sample or well
+    x : array-like
+    y : array-like
+    threshold : numeric
+    weak_threshold : numeric
+
+    Returns
+    -------
+    int or None
+        If `None`, then an heuristic was not found.
+        Otherwise returns a negative integer code.
     """
     result = None
     # look for sharp changes in the curve shape indicating a bad fit
@@ -129,6 +209,17 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
     Try simple heuristics first without model fitting.
     Once a model is fitted try heuristics based on the fitted curve.
     Then calculate the value based on the intercept where the curve = threshold.
+
+    Parameters
+    -----------
+    name : str
+    df : pandas.DataFrame
+    threshold : numeric
+    weak_threshold : numeric
+
+    Returns
+    --------
+    tuple (`fit_method`, `result`, `model_params`)
     """
     # FIXME: drop missing values
     df = df.dropna()
@@ -180,11 +271,23 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
 
 
 def hampel(x, k, t0=3):
-    """
-    adapted from hampel function in R package pracma
-        x: 1-d numpy array of numbers to be filtered
-        k: number of items in window/2 (# forward and backward wanted to capture in median filter)
-        t0: number of standard deviations to use; 3 is default
+    """Hampel's outlier test
+
+    Adapted from hampel function in R package pracma.
+
+    Parameters
+    -----------
+    x : 1-d array
+        numbers to be filtered
+    k : int
+        number of items in window/2 (# forward and backward wanted to capture in median filter)
+    t0 : numeric (float or int)
+        number of standard deviations to use; 3 is default
+
+    Returns
+    -------
+    array-like
+        indices in x of outliers
     """
     n = len(x)
     L = 1.4826
@@ -200,9 +303,18 @@ def hampel(x, k, t0=3):
 
 
 def calc_median_all_plates(df):
-    """
-    calculate the median of "Cells - Image Region Area - Mean per Well"
+    """Median of `Cells - Image Region Area` of all plates
+
+    Calculate the median of "Cells - Image Region Area - Mean per Well"
     for all wells of all plates
+
+    Parameters
+    --------
+    df : pandas.DataFrame
+
+    Returns
+    ---------
+    numeric
     """
     median = df["Cells - Image Region Area [µm²] - Mean per Well"].median()
     logging.info("median 'Cells = Image Region Area' for all plates %s", median)

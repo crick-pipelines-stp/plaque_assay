@@ -1,3 +1,8 @@
+"""
+Main `run()` function to launch the analysis.
+"""
+
+
 import os
 
 import sqlalchemy
@@ -9,6 +14,27 @@ from plaque_assay import utils
 
 
 def create_engine(test=True):
+    """Create a database engine.
+
+    Create a database engine to the LIMS serology database.
+
+    This requires that the database credentials are in the user's
+    environment. These credentials are:
+    - `NE_USER` username
+    - `NE_HOST_PROD` (if using production database) host
+    - `NE_HOST_TEST` (if using testing database) host
+    - `NE_PASSWORD` password
+
+
+    Parameters
+    ----------
+    test : bool
+        If True, then will use the 
+
+    Returns
+    -------
+    sqlalchemy.engine.Engine
+    """
     user = os.environ.get("NE_USER")
     if test:
         host = os.environ.get("NE_HOST_TEST")
@@ -25,6 +51,10 @@ def create_engine(test=True):
 
 
 def create_local_engine():
+    """Create a local database engine.
+
+    Create a database engine to a local sqlite database.
+    """
     engine = sqlalchemy.create_engine(
         "sqlite:////home/warchas/test_variant_plaque_assay_db.sqlite"
     )
@@ -32,6 +62,28 @@ def create_local_engine():
 
 
 def run(plate_list):
+    """Run analysis pipeline.
+
+    This runs the entire analysis on a pair of plates, given that the 2
+    plates are replicates for a single workflow_id and variant. The analysis
+    will upload the results in the LIMS database.
+
+    Parameters
+    ------------
+    plate_list : list
+        List of paths to the plate directories to analyse. This will be 2 plates 
+        for the 2 replicates for a single workflow and variant.
+
+    Returns
+    ----------
+    None
+
+    Raises
+    -------
+    AlreadyUploadedError
+        This exception is raised if the given workflow and variant
+        are already present in the LIMS serology database.
+    """
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
