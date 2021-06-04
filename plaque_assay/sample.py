@@ -74,13 +74,12 @@ class Sample:
 
     def calc_ic50(self):
         """calculate IC50 value"""
-        fit_method, ic50, model_params = stats.calc_results_model(
-            self.sample_name, self.data
-        )
-        self.fit_method = fit_method
-        self.ic50 = ic50
-        self.ic50_pretty = ic50 if ic50 > 0 else utils.int_to_result(ic50)
-        self.model_params = model_params
+        model_results = stats.calc_results_model(self.sample_name, self.data)
+        self.fit_method = model_results.fit_method
+        self.ic50 = model_results.result
+        self.ic50_pretty = self.ic50 if self.ic50 > 0 else utils.int_to_result(self.ic50)
+        self.model_params = model_results.model_params
+        self.mean_squared_error = model_results.mean_square_error
 
     def check_positive_control(self):
         """

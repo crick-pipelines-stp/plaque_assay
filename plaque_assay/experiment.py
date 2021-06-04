@@ -268,10 +268,12 @@ class Experiment:
               - `param_bottom`
               - `param_ec50`
               - `param_hillslope`
+              - `mean_squared_error`
         """
         param_dict = defaultdict(list)
         for well, sample_obj in self.sample_store.items():
             model_params = sample_obj.model_params
+            mean_squared_error = sample_obj.mean_squared_error
             if model_params is not None:
                 top, bottom, ec50, hillslope = model_params
             else:
@@ -281,6 +283,7 @@ class Experiment:
             param_dict["param_bottom"].append(bottom)
             param_dict["param_ec50"].append(ec50)
             param_dict["param_hillslope"].append(hillslope)
+            param_dict["mean_squared_error"].append(mean_squared_error)
         df = pd.DataFrame(param_dict)
         df["experiment"] = self.experiment_name
         df["variant"] = self.variant

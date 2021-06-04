@@ -2,7 +2,7 @@
 Stats and number crunching functions.
 """
 
-
+from collections import namedtuple
 import logging
 
 import numpy as np
@@ -101,6 +101,41 @@ def non_linear_model(x, y, func=dr_4):
         func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )
     return popt, pcov
+
+
+def std_dev_params(pcov):
+    """
+    Compute the standard deviation errors on the model parameters.
+
+    Parameters
+    ----------
+    pcov: 2D array
+
+    Returns
+    --------
+    1D array
+    """
+    return np.sqrt(np.diag(pcov))
+
+
+def model_mse(y_observed, y_fitted):
+    """
+    Mean squared error between the observed
+    and the estimated values.
+
+    Parameters
+    -----------
+    y_observed : numeric
+        observed y-values
+    y_estimated : numeric
+        estimated y-values from model fit
+
+    Returns
+    -------
+    float
+    """
+    assert y_observed.shape == y_fitted.shape
+    return np.mean((y_observed - y_fitted)**2)
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
@@ -219,18 +254,19 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
 
     Returns
     --------
-    tuple (`fit_method`, `result`, `model_params`)
+    namedtuple("fit_method", "result", "model_params", "mean_squared_error")
     """
-    # FIXME: drop missing values
-    df = df.dropna()
-    #
-    df = df.sort_values("Dilution")
+    output = namedtuple(
+        "ResultsModel", ["fit_method", "result", "model_params", "mean_squared_error"]
+    )
+    df = df.dropna().sort_values("Dilution")
     x = df["Dilution"].values
     x_min = 0.0000390625
     x_max = 0.25
     x_interpolated = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     y = df["Percentage Infected"].values
     model_params = None
+    mean_squared_error = None
     heuristic = calc_heuristics_dilutions(df, threshold, weak_threshold)
     if heuristic is not None:
         result = heuristic
@@ -244,16 +280,21 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
             result = utils.result_to_int("failed to fit model")
         fit_method = "model fit"
         if model_params is not None:
-            dr_curve = dr_4(x_interpolated, *model_params)
+            # predicted y-values for interpolated x-values, useful to generate curve
+            y_fitted = dr_4(x_interpolated, *model_params)
+            # predicted y-values only for dilution x-values, useful for MSE
+            # calculation
+            y_hat = dr_4(x, *model_params)
+            mean_squared_error = model_mse(y_hat, y)
             curve_heuristics = calc_heuristics_curve(
-                name, x_interpolated, dr_curve, threshold, weak_threshold
+                name, x_interpolated, y_fitted, threshold, weak_threshold
             )
             if curve_heuristics is not None:
                 result = curve_heuristics
             else:
                 try:
                     intersect_x, intersect_y = find_intersect_on_curve(
-                        x_min, x_max, dr_curve
+                        x_min, x_max, y_fitted
                     )
                     result = 1 / intersect_x[0]
                     if result < 1 / x.max():
@@ -267,7 +308,7 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
                     logging.error("during model fitting: %s", e)
                     result = utils.result_to_int("failed to fit model")
     logging.debug("well %s fitted with method %s", name, fit_method)
-    return fit_method, result, model_params
+    return output(fit_method, result, model_params, mean_squared_error)
 
 
 def hampel(x, k, t0=3):
