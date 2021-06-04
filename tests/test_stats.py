@@ -86,7 +86,7 @@ def test_calc_heuristics_dilutions():
 
 
 def test_calc_results_model():
-    fit_method, result, model_params = stats.calc_results_model(
+    fit_method, result, model_params, mean_squared_error = stats.calc_results_model(
         name="test",
         df=df_good_inhibition,
         threshold=THRESHOLD,
@@ -95,3 +95,4 @@ def test_calc_results_model():
     expected_ic50 = 150
     assert fit_method == "model fit"
     assert abs(result - expected_ic50) < 50
+    assert mean_squared_error < 100
