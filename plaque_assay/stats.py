@@ -135,7 +135,7 @@ def model_mse(y_observed, y_fitted):
     float
     """
     assert y_observed.shape == y_fitted.shape
-    return np.mean((y_observed - y_fitted)**2)
+    return np.nanmean((y_observed - y_fitted)**2)
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
