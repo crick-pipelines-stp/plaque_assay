@@ -135,7 +135,11 @@ def model_mse(y_observed, y_fitted):
     float
     """
     assert y_observed.shape == y_fitted.shape
-    return np.nanmean((y_observed - y_fitted)**2)
+    mse = np.nanmean((y_observed - y_fitted)**2)
+    if mse > 99999:
+        mse = 99999
+        logging.warning("MSE limited to 99999 to fit in decimal column")
+    return mse
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
@@ -286,6 +290,9 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
             # calculation
             y_hat = dr_4(x, *model_params)
             mean_squared_error = model_mse(y_hat, y)
+            if mean_squared_error > 99999:
+                logging.warning("MSE > 99999, clipped to 99999 to fit in database")
+                mean_squared_error = 99999
             curve_heuristics = calc_heuristics_curve(
                 name, x_interpolated, y_fitted, threshold, weak_threshold
             )
