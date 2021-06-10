@@ -145,6 +145,7 @@ class NE_model_parameters(Base):
     param_bottom = sql.Column(sql.DECIMAL(20, 15))
     param_ec50 = sql.Column(sql.DECIMAL(20, 15))
     param_hillslope = sql.Column(sql.DECIMAL(20, 15))
+    mean_squared_error = sql.Column(sql.DECIMAL(20, 15))
     workflow_id = sql.Column(
         sql.Integer, sql.ForeignKey("NE_workflow_tracking.workflow_id")
     )
