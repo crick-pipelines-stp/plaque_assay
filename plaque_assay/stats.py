@@ -135,11 +135,7 @@ def model_mse(y_observed, y_fitted):
     float
     """
     assert y_observed.shape == y_fitted.shape
-    mse = np.nanmean((y_observed - y_fitted)**2)
-    if mse > 99999:
-        mse = 99999
-        logging.warning("MSE limited to 99999 to fit in decimal column")
-    return mse
+    return np.nanmean((y_observed - y_fitted)**2)
 
 
 def calc_heuristics_dilutions(group, threshold, weak_threshold):
