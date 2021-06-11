@@ -5,7 +5,6 @@ Class to encapsulate all plates and samples.
 
 import logging
 import os
-import json
 from collections import defaultdict
 
 import pandas as pd
@@ -32,6 +31,7 @@ class Experiment:
     plates: key-value pairs
 
     """
+
     def __init__(self, df):
         self.df = df
         self.experiment_name = df["Plate_barcode"].values[0][3:]

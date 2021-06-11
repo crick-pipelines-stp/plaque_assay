@@ -12,6 +12,7 @@ class PlateFailure:
     reason : str
 
     """
+
     def __init__(self, plate, wells, reason=""):
         self.plate = plate
         self.wells = wells
@@ -35,12 +36,14 @@ class PlateFailure:
 
 class InfectionPlateFailure(PlateFailure):
     """Plate failure due to virus-only infection median outside expected range"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
 class CellAreaPlateFailure(PlateFailure):
     """Plate failure due to cell-image-region-area outside expected limits"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.reason = "cell-image-region-area outside expected limits"
@@ -48,6 +51,7 @@ class CellAreaPlateFailure(PlateFailure):
 
 class DAPIPlateFailure(PlateFailure):
     """Plate failure due to large number of DAPI images outside expected range"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.reason = "possible plate fail - check DAPI plate image"
@@ -67,6 +71,7 @@ class WellFailure:
     to_dict()
         convert to dictionary
     """
+
     def __init__(self, well, plate, reason):
         self.well = well
         self.plate = plate
