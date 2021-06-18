@@ -29,7 +29,7 @@ def create_engine(test=True):
     Parameters
     ----------
     test : bool
-        If True, then will use the
+        If True, then will use the staging/testing database
 
     Returns
     -------

@@ -512,13 +512,13 @@ class DatabaseUploader:
         Parameters
         ----------
         workflow_id: int
-        vaiant: str
+        variant: str
 
         Returns
         -------
         None
         """
         plate_entry = db_models.NE_reporter_plate_status(
-            workfloW_id=int(workflow_id), variant=variant, status="awaiting"
+            workflow_id=int(workflow_id), variant=variant, status="awaiting"
         )
         self.session.add(plate_entry)
