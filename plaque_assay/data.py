@@ -165,6 +165,7 @@ class DatabaseUploader:
         sqlalchemy session to LIMS serology database
 
     """
+
     def __init__(self, session):
         self.session = session
 
@@ -370,7 +371,7 @@ class DatabaseUploader:
     def upload_normalised_results(self, norm_results):
         """Upload normalised results into the database.
 
-        Uploads the normalised data, consisting of 
+        Uploads the normalised data, consisting of
         `background_subtracted_plaque_area`, `percentage_infected` and
         metadata, into the LIMS serology database.
 
@@ -493,7 +494,7 @@ class DatabaseUploader:
         # fmt: off
         self.session\
             .query(db_models.NE_workflow_tracking)\
-            .filter( db_models.NE_workflow_tracking.workflow_id == workflow_id)\
+            .filter(db_models.NE_workflow_tracking.workflow_id == workflow_id)\
             .update(
                 {
                     db_models.NE_workflow_tracking.status: "complete",
@@ -502,3 +503,22 @@ class DatabaseUploader:
                 }
             )
         # fmt: on
+
+    def upload_reporter_plate_status(self, workflow_id, variant):
+        """Inserts new row in NE_reporter_plate_status to indicate
+        current plate (workflow_id & variant) is awaiting
+        reporter decision (pass, fail).
+
+        Parameters
+        ----------
+        workflow_id: int
+        vaiant: str
+
+        Returns
+        -------
+        None
+        """
+        plate_entry = db_models.NE_reporter_plate_status(
+            workfloW_id=int(workflow_id), variant=variant, status="awaiting"
+        )
+        self.session.add(plate_entry)

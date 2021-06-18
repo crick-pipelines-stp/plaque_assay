@@ -29,7 +29,7 @@ def create_engine(test=True):
     Parameters
     ----------
     test : bool
-        If True, then will use the 
+        If True, then will use the
 
     Returns
     -------
@@ -71,7 +71,7 @@ def run(plate_list):
     Parameters
     ------------
     plate_list : list
-        List of paths to the plate directories to analyse. This will be 2 plates 
+        List of paths to the plate directories to analyse. This will be 2 plates
         for the 2 replicates for a single workflow and variant.
 
     Returns
@@ -110,6 +110,7 @@ def run(plate_list):
     lims_db.upload_final_results(final_results)
     lims_db.upload_failures(failures)
     lims_db.upload_model_parameters(model_parameters)
+    lims_db.upload_reporter_plate_status(workflow_id, variant)
     if lims_db.is_final_upload(workflow_id):
         lims_db.update_workflow_tracking(workflow_id)
     lims_db.commit()
