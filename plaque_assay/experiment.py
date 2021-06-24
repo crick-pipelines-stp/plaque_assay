@@ -61,7 +61,7 @@ class Experiment:
         sample_dict = dict()
         for name, group in self.df.groupby("Well"):
             sample_df = group[["Dilution", "Percentage Infected"]]
-            sample_dict[name] = Sample(name, sample_df)
+            sample_dict[name] = Sample(name, sample_df, self.variant)
         return sample_dict
 
     def get_failures_as_json(self):

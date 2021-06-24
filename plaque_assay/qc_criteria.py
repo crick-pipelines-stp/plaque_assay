@@ -1,7 +1,5 @@
-import os
-import textwrap
+import numpy as np
 
-from . import consts
 
 """
 1. Calculate median of “Cells - Image Region Area [¬µm¬≤] - Mean per Well”
@@ -48,48 +46,21 @@ infection_rate_high = 0.8
     c. If between 40-50% inhibition at 1:40, return ‘weak inhibition’
 
 8. Check IC50 for control wells A6, H6, D12, and E12.
-    a. If IC50 is not between 300-800, then flag “positive control IC50 outside expected range”.
+    a. If IC50 is not between variant-specific range, then flag “positive control IC50 outside
+       expected range”.
 """
 # If this sample is a postitive control, then determine
 # if the IC50 value is between specified values. Otherwise it's an
 # failure.
-positive_control_low = 300
-positive_control_high = 800
+positive_control_ic50 = {
+    "England2": {"low": 400, "high": 1200},
+    "B117": {"low": 250, "high": 600},
+    "B1351": {"low": 400, "high": 1200},
+    "FCI_003": {"low": 400, "high": 1200},
+    "B.1.617.2 (India)": {"low": 900, "high": np.inf},
+}
 
 
 # the difference between replicates in "percentage infected"
 # over which, the duplicates will be considered too far apart
 duplicate_difference = 37
-
-
-def print_criteria():
-    output = textwrap.dedent(
-        f"""
-        Quality control criteria used in this analysis
-        ===============================================
-
-        Wells identified where "Cells - Image Region Area [µm²] - Mean per Well"
-        is < {low_cells_image_region_area_low*100:.1f}% or > {low_cells_image_region_area_high*100:.1f} % of the plate median.
-        If any of these wells are in column 12 then flag the entire plate for failure.
-
-        The IC50 values of the positive control wells have to be between {positive_control_low:.1f} and {positive_control_high:.1f}.
-
-        The infection rate of the virus only wells has to be between {infection_rate_low*100:.1f}% and {infection_rate_high*100:.1f}%.
-        This is calculated from "Background Subtracted Plaque Area", and the entire plate is failed if the median
-        of the virus-only-wells is outside of these limits.
-
-        virus only wells: {consts.VIRUS_ONLY_WELLS}
-
-        no virus wells: {consts.NO_VIRUS_WELLS}
-
-        positive control wells: {consts.POSITIVE_CONTROL_WELLS}
-        """
-    )
-    return output
-
-
-def save_qc_criteria(output_dir, experiment):
-    text = print_criteria()
-    save_path = os.path.join(output_dir, f"qc_criteria_{experiment}.txt")
-    with open(save_path, "w") as f:
-        f.write(text)

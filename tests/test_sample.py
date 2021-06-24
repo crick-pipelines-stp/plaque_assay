@@ -3,6 +3,8 @@ from plaque_assay.sample import Sample
 import pandas as pd
 
 
+VARIANT = "England2"
+
 dilutions = [
     0.000391,
     0.000391,
@@ -57,6 +59,19 @@ perc_bad_no_inhibition = [
     90.988952,
 ]
 
+# good data, but IC50 value outside expected range
+# for the B117 variant's positive control
+perc_wrong_ic50 = [
+    64.556437,
+    60.200186,
+    30.246412,
+    23.365569,
+    13.787072,
+    11.955933,
+    12.517334,
+    13.988952,
+]
+
 
 good_test_data = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_good})
 
@@ -75,14 +90,45 @@ bad_replicate_no_inhib_data = pd.DataFrame(
 )
 
 
+good_but_wrong_ic50_for_pos_cntrl = pd.DataFrame(
+    {"Dilution": dilutions, "Percentage Infected": perc_wrong_ic50}
+)
+
+
 def test_check_positive_control():
-    sample_good = Sample(sample_name="A06", data=good_test_data)
+    sample_good = Sample(sample_name="A06", data=good_test_data, variant=VARIANT)
     # shouldn't have any positive control failures
     assert len(sample_good.failures) == 0
 
 
+def test_check_positive_control_failure():
+    sample_wrong_ic50 = Sample(
+        sample_name="A06", data=good_but_wrong_ic50_for_pos_cntrl, variant="B117"
+    )
+    # check there's some failures
+    assert len(sample_wrong_ic50.failures) > 0
+    # check they're actually failures for unexpected positive control values
+    assert any(
+        i.reason.startswith("positive control failure")
+        for i in sample_wrong_ic50.failures
+    )
+    # use the india (delta) variant, should pass
+    sample_right_ic50 = Sample(
+        sample_name="A06",
+        data=good_but_wrong_ic50_for_pos_cntrl,
+        variant="B.1.617.2 (India)",
+    )
+    assert len(sample_right_ic50.failures) == 0
+    sample_unknown_variant = Sample(
+        sample_name="A06", data=good_but_wrong_ic50_for_pos_cntrl, variant="TEST",
+    )
+    assert len(sample_unknown_variant.failures) == 0
+
+
 def test_check_duplicate_differences():
-    sample_bad_rep = Sample(sample_name="A01", data=bad_replicate_test_data)
+    sample_bad_rep = Sample(
+        sample_name="A01", data=bad_replicate_test_data, variant=VARIANT
+    )
     assert len(sample_bad_rep.failures) > 0
     # check that the failure is actually due to duplicate difference
     assert any(
@@ -93,13 +139,15 @@ def test_check_duplicate_differences():
 
 def test_check_duplicate_differnces_no_inhibition():
     """Don't flag duplicate difference if the result is "no inhibition"""
-    sample = Sample(sample_name="A01", data=bad_replicate_no_inhib_data)
+    sample = Sample(
+        sample_name="A01", data=bad_replicate_no_inhib_data, variant=VARIANT
+    )
     assert len(sample.failures) == 0
     assert sample.ic50_pretty == "no inhibition"
 
 
 def test_check_for_model_fit_failure():
-    sample = Sample(sample_name="A01", data=model_failure_data)
+    sample = Sample(sample_name="A01", data=model_failure_data, variant=VARIANT)
     assert len(sample.failures) > 0
     assert any(
         i.reason == "failed to fit model to data points" for i in sample.failures
