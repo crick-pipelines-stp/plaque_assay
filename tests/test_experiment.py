@@ -6,7 +6,7 @@ from plaque_assay.experiment import Experiment
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "test_data"))
+TEST_DATA_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "experiment_df"))
 EXAMPLE_EXPERIMENT_PATH = os.path.join(TEST_DATA_DIR, "experiment_df_example.csv")
 EXAMPLE_EXPERIMENT_PATH_2 = os.path.join(TEST_DATA_DIR, "experiment_df_example_2.csv")
 EXPERIMENT_DF = pd.read_csv(EXAMPLE_EXPERIMENT_PATH)
@@ -16,7 +16,6 @@ experiment_list = [
     Experiment(EXPERIMENT_DF),
     Experiment(EXPERIMENT_DF_2),
 ]
-
 
 
 def test_experiment_failures_as_json():
