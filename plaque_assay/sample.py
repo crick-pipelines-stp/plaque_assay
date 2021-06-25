@@ -212,7 +212,11 @@ class Sample:
         plt.figure(figsize=[10, 6])
         plt.axhline(y=50, linestyle="--", color="grey")
         plt.scatter(1 / self.data["Dilution"], self.data["Percentage Infected"])
-        x = np.linspace(self.data["Dilution"].min(), self.data["Dilution"].max(), 1000)
+        x = np.logspace(
+            np.log10(self.data["Dilution"].min()),
+            np.log10(self.data["Dilution"].max()),
+            10000
+        )
         if self.model_params is not None:
             x_min = self.data["Dilution"].min()
             x_max = self.data["Dilution"].max()
