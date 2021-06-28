@@ -1,6 +1,10 @@
 import os
 import string
 import math
+from typing import List, Union
+
+import pandas as pd
+import sqlalchemy
 
 from .db_models import NE_available_strains
 
@@ -16,7 +20,7 @@ RESULT_TO_INT = {
 INT_TO_RESULT = {integer: result for result, integer in RESULT_TO_INT.items()}
 
 
-def result_to_int(result):
+def result_to_int(result: str) -> int:
     """convert result string to an integer
 
     Parameters
@@ -30,7 +34,7 @@ def result_to_int(result):
     return RESULT_TO_INT[result]
 
 
-def int_to_result(integer):
+def int_to_result(integer: int) -> str:
     """convert result integer to a string
 
     Parameters
@@ -44,7 +48,7 @@ def int_to_result(integer):
     return INT_TO_RESULT[integer]
 
 
-def row_col_to_well(row, col):
+def row_col_to_well(row: int, col: int) -> str:
     """join row and column indices to well labels
 
     Parameters
@@ -68,7 +72,7 @@ def row_col_to_well(row, col):
     return f"{row_str}{col:02}"
 
 
-def unpad_well(well):
+def unpad_well(well: str) -> str:
     """
     Remove zero-padding from well labels
 
@@ -90,7 +94,7 @@ def unpad_well(well):
     return f"{row}{int(col)}"
 
 
-def unpad_well_col(well_col):
+def unpad_well_col(well_col: Union[List, pd.Series]) -> List:
     """Remove padding from an entire column of well labels
 
     Parameters
@@ -105,7 +109,7 @@ def unpad_well_col(well_col):
     return [unpad_well(i) for i in well_col]
 
 
-def well_384_to_96(well):
+def well_384_to_96(well: str) -> str:
     """Convert 384 well label to 96 well label.
 
     If a 384-well plate has been constructed by stamping out 4 96-well plates,
@@ -133,7 +137,7 @@ def well_384_to_96(well):
     return f"{string.ascii_uppercase[row]}{col:02}"
 
 
-def is_odd(n):
+def is_odd(n: int) -> bool:
     """is odd
 
     Parameters
@@ -147,7 +151,7 @@ def is_odd(n):
     return n % 2 != 0
 
 
-def is_even(n):
+def is_even(n: int) -> bool:
     """is even
 
     Parameters
@@ -161,7 +165,7 @@ def is_even(n):
     return n % 2 == 0
 
 
-def get_dilution_from_384_well_label(well):
+def get_dilution_from_384_well_label(well: str) -> int:
     """Get dilution integer given a well label
 
     Given a 384-well plate constructed from 4 different diltuions
@@ -193,7 +197,7 @@ def get_dilution_from_384_well_label(well):
     return dilution
 
 
-def mock_384_barcode(existing_barcodes, wells):
+def mock_384_barcode(existing_barcodes: List, wells: List) -> List:
     """384 -> 96 well plate barcodes
 
     Create mock barcodes for the mock 96-well plates
@@ -219,7 +223,7 @@ def mock_384_barcode(existing_barcodes, wells):
     return new_barcodes
 
 
-def get_prefix_from_full_path(full_path):
+def get_prefix_from_full_path(full_path: str) -> str:
     """Get prefix from full path
 
     Given a full-length path to a plate, this will return the
@@ -241,7 +245,9 @@ def get_prefix_from_full_path(full_path):
     return prefix
 
 
-def get_variant_from_plate_list(plate_list, session):
+def get_variant_from_plate_list(
+    plate_list: List, session: sqlalchemy.orm.Session
+) -> str:
     """
     Fetch variant name from the LIMS database.
     This uses the plate barcodes within the plate_list which contain

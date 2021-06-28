@@ -6,6 +6,7 @@ Class to encapsulate all plates and samples.
 import logging
 import os
 from collections import defaultdict
+from typing import Dict
 
 import pandas as pd
 
@@ -32,7 +33,7 @@ class Experiment:
 
     """
 
-    def __init__(self, df):
+    def __init__(self, df: pd.DataFrame):
         self.df = df
         self.experiment_name = df["Plate_barcode"].values[0][3:]
         self.variant = df["variant"].values[0]
@@ -50,7 +51,7 @@ class Experiment:
         """Key-value store of all plates in the experiment"""
         return self.plate_store.items()
 
-    def make_samples(self):
+    def make_samples(self) -> Dict:
         """Return samples in the form of a dictionary.
 
         Returns
@@ -64,7 +65,7 @@ class Experiment:
             sample_dict[name] = Sample(name, sample_df, self.variant)
         return sample_dict
 
-    def get_failures_as_json(self):
+    def get_failures_as_json(self) -> Dict:
         """Return failures as a dictionary.
 
         Returns
@@ -92,7 +93,7 @@ class Experiment:
             failure_dict["well_failures"].extend(sample_failures_as_dict)
         return failure_dict
 
-    def get_failures_as_dataframe(self):
+    def get_failures_as_dataframe(self) -> pd.DataFrame:
         """Return failures a dataframe
 
         Returns
@@ -137,7 +138,7 @@ class Experiment:
         df["variant"] = self.variant
         return df
 
-    def save_failures_as_dataframe(self, output_dir):
+    def save_failures_as_dataframe(self, output_dir: str):
         """Save failures as a csv file.
 
         Parameters
@@ -156,7 +157,7 @@ class Experiment:
         failures_df.to_csv(failure_output_path, index=False)
         logging.info("failures dataframe saved to %s", failure_output_path)
 
-    def get_results_as_json(self):
+    def get_results_as_json(self) -> Dict:
         """Return final results as a dictionary.
 
         Returns
@@ -170,7 +171,7 @@ class Experiment:
             results["results"][sample_name] = sample.ic50
         return results
 
-    def get_results_as_dataframe(self):
+    def get_results_as_dataframe(self) -> pd.DataFrame:
         """Return final results as a dataframe.
 
         Returns
@@ -198,7 +199,7 @@ class Experiment:
         df["variant"] = self.variant
         return df
 
-    def save_results_as_dataframe(self, output_dir):
+    def save_results_as_dataframe(self, output_dir: str):
         results_df = self.get_results_as_dataframe()
         result_output_path = os.path.join(
             output_dir, f"results_{self.experiment_name}.csv"
@@ -206,7 +207,7 @@ class Experiment:
         results_df.to_csv(result_output_path, index=False)
         logging.info("results dataframe saved to %s", result_output_path)
 
-    def get_normalised_data(self):
+    def get_normalised_data(self) -> pd.DataFrame:
         """Get normalised data
 
         Returns
@@ -221,7 +222,7 @@ class Experiment:
         df_concat["variant"] = self.variant
         return df_concat
 
-    def save_normalised_data(self, output_dir, concatenate=True):
+    def save_normalised_data(self, output_dir: str, concatenate: bool = True):
         """Save normalised data as a csv file
 
         Parameters
@@ -250,7 +251,7 @@ class Experiment:
             for _, plate_object in self.plates:
                 plate_object.save_normalised_data(output_dir)
 
-    def get_model_parameters(self):
+    def get_model_parameters(self) -> pd.DataFrame:
         """Return curve-fitting parameters as a dataframe.
 
         The dataframe contains a row for every well. For wells
@@ -289,7 +290,7 @@ class Experiment:
         df["variant"] = self.variant
         return df
 
-    def get_percentage_infected_dataframe(self):
+    def get_percentage_infected_dataframe(self) -> pd.DataFrame:
         """Return dataframe value of dilutions and percentage infected
 
         Returns

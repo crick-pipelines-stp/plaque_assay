@@ -10,6 +10,7 @@ from . import qc_criteria
 from .consts import POSITIVE_CONTROL_WELLS
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -60,7 +61,7 @@ class Sample:
         via fitting a curve.
     """
 
-    def __init__(self, sample_name, data, variant):
+    def __init__(self, sample_name: str, data: pd.DataFrame, variant: str):
         self.sample_name = sample_name
         self.data = data
         self.variant = variant
@@ -215,7 +216,7 @@ class Sample:
         x = np.logspace(
             np.log10(self.data["Dilution"].min()),
             np.log10(self.data["Dilution"].max()),
-            10000
+            10000,
         )
         if self.model_params is not None:
             x_min = self.data["Dilution"].min()

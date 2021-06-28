@@ -4,6 +4,7 @@ Main `run()` function to launch the analysis.
 
 
 import os
+from typing import List
 
 import sqlalchemy
 
@@ -13,7 +14,7 @@ from plaque_assay import data
 from plaque_assay import utils
 
 
-def create_engine(test=True):
+def create_engine(test: bool = True) -> sqlalchemy.engine.base.Engine:
     """Create a database engine.
 
     Create a database engine to the LIMS serology database.
@@ -50,7 +51,7 @@ def create_engine(test=True):
     return engine
 
 
-def create_local_engine():
+def create_local_engine() -> sqlalchemy.engine.base.Engine:
     """Create a local database engine.
 
     Create a database engine to a local sqlite database.
@@ -61,7 +62,7 @@ def create_local_engine():
     return engine
 
 
-def run(plate_list):
+def run(plate_list: List):
     """Run analysis pipeline.
 
     This runs the entire analysis on a pair of plates, given that the 2

@@ -1,6 +1,7 @@
 """
 Classes to hold information about plate and well failures.
 """
+from typing import Dict
 
 
 class PlateFailure:
@@ -13,7 +14,7 @@ class PlateFailure:
 
     """
 
-    def __init__(self, plate, wells, reason=""):
+    def __init__(self, plate: str, wells: str, reason: str = ""):
         self.plate = plate
         self.wells = wells
         self.reason = reason
@@ -24,7 +25,7 @@ class PlateFailure:
     def __repr__(self):
         return str(self.to_dict())
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         """convert to dictionary"""
         return {
             "type": "plate_failure",
@@ -72,7 +73,7 @@ class WellFailure:
         convert to dictionary
     """
 
-    def __init__(self, well, plate, reason):
+    def __init__(self, well: str, plate: str, reason: str):
         self.well = well
         self.plate = plate
         self.reason = reason
@@ -83,7 +84,7 @@ class WellFailure:
     def __repr__(self):
         return str(self.to_dict())
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {
             "type": "well_failure",
             "plate": self.plate,

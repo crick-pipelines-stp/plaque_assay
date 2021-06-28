@@ -70,7 +70,7 @@ class Plate:
         for one of more QC reasons.
     """
 
-    def __init__(self, df):
+    def __init__(self, df: pd.DataFrame):
         self.df = self.subtract_plaque_area_background(df)
         assert df["PlateNum"].nunique() == 1
         self.barcode = df["Plate_barcode"].values[0]
@@ -131,7 +131,7 @@ class Plate:
                     )
                 )
 
-    def subtract_plaque_area_background(self, df):
+    def subtract_plaque_area_background(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove background from `plaque_area`.
 
         1. Calculate the median of "Normalised Plaque area" fo no virus wells.
@@ -183,7 +183,7 @@ class Plate:
             )
         self.df["Percentage Infected"] = self.df[feature] / infection * 100
 
-    def get_normalised_data(self):
+    def get_normalised_data(self) -> pd.DataFrame:
         """Return a simplified dataframe of just the normalised data
 
         This subsets and renames some columns.
@@ -212,7 +212,7 @@ class Plate:
         )
         return df_wanted
 
-    def save_normalised_data(self, output_dir):
+    def save_normalised_data(self, output_dir: str):
         """Save csv of the normalised data
 
         Parameters

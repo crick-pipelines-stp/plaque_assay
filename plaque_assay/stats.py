@@ -2,16 +2,18 @@
 Stats and number crunching functions.
 """
 
-from collections import namedtuple
 import logging
+from numbers import Number
+from typing import NamedTuple, Tuple, List, Callable, Union
 
 import numpy as np
+import pandas as pd
 import scipy.optimize
 
 from . import utils
 
 
-def dr_3(x, top, bottom, ec50):
+def dr_3(x: np.array, top: Number, bottom: Number, ec50: Number) -> np.array:
     """3 parameter dose response curve
 
     Parameters
@@ -29,7 +31,9 @@ def dr_3(x, top, bottom, ec50):
     return bottom + x * (top - bottom) / (ec50 + x)
 
 
-def dr_4(x, top, bottom, ec50, hill_slope):
+def dr_4(
+    x: np.array, top: Number, bottom: Number, ec50: Number, hill_slope: Number
+) -> np.array:
     """4 parameter dose response curve
 
     Parameters
@@ -51,7 +55,9 @@ def dr_4(x, top, bottom, ec50, hill_slope):
         return (bottom - top) / (1 + (x / ec50) ** hill_slope)
 
 
-def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
+def find_intersect_on_curve(
+    x_min: Number, x_max: Number, curve: np.array, intersect: Number = 50
+) -> Tuple[Number, Number]:
     """Find intersect of two curves.
 
     Really hacky way of finding intersect of two curves,
@@ -80,7 +86,9 @@ def find_intersect_on_curve(x_min, x_max, curve, intersect=50):
     return x[idx], curve[idx]
 
 
-def non_linear_model(x, y, func=dr_4):
+def non_linear_model(
+    x: Number, y: Number, func: Callable = dr_4
+) -> Tuple[Number, Number]:
     """
     fit non-linear least squares to the data
 
@@ -103,7 +111,7 @@ def non_linear_model(x, y, func=dr_4):
     return popt, pcov
 
 
-def std_dev_params(pcov):
+def std_dev_params(pcov: np.array) -> np.array:
     """
     Compute the standard deviation errors on the model parameters.
 
@@ -118,7 +126,7 @@ def std_dev_params(pcov):
     return np.sqrt(np.diag(pcov))
 
 
-def model_mse(y_observed, y_fitted):
+def model_mse(y_observed: np.array, y_fitted: np.array) -> float:
     """
     Mean squared error between the observed
     and the estimated values.
@@ -138,7 +146,9 @@ def model_mse(y_observed, y_fitted):
     return np.nanmean((y_observed - y_fitted) ** 2)
 
 
-def calc_heuristics_dilutions(group, threshold, weak_threshold):
+def calc_heuristics_dilutions(
+    group: pd.DataFrame, threshold: Number, weak_threshold: Number
+) -> Number:
     """Simple heuristics based on the values without model fitting
 
     Parameters
@@ -198,7 +208,9 @@ def calc_heuristics_dilutions(group, threshold, weak_threshold):
         return utils.result_to_int(result)
 
 
-def calc_heuristics_curve(name, x, y, threshold, weak_threshold):
+def calc_heuristics_curve(
+    name: str, x: np.array, y: np.array, threshold: Number, weak_threshold: Number
+) -> Union[int, None]:
     """
     heuristics based on the model fit where we cannot calculate the intercept
     at the threshold
@@ -239,7 +251,16 @@ def calc_heuristics_curve(name, x, y, threshold, weak_threshold):
         return utils.result_to_int(result)
 
 
-def calc_results_model(name, df, threshold=50, weak_threshold=60):
+class ResultsModel(NamedTuple):
+    fit_method: str
+    result: Number
+    model_params: Union[Number, None]
+    mean_squared_error: float
+
+
+def calc_results_model(
+    name: str, df: pd.DataFrame, threshold: Number = 50, weak_threshold: Number = 60
+) -> ResultsModel:
     """
     Try simple heuristics first without model fitting.
     Once a model is fitted try heuristics based on the fitted curve.
@@ -256,9 +277,6 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
     --------
     namedtuple("fit_method", "result", "model_params", "mean_squared_error")
     """
-    output = namedtuple(
-        "ResultsModel", ["fit_method", "result", "model_params", "mean_squared_error"]
-    )
     df = df.dropna().sort_values("Dilution")
     x = df["Dilution"].values
     x_min = 0.0000390625
@@ -311,10 +329,10 @@ def calc_results_model(name, df, threshold=50, weak_threshold=60):
                     logging.error("during model fitting: %s", e)
                     result = utils.result_to_int("failed to fit model")
     logging.debug("well %s fitted with method %s", name, fit_method)
-    return output(fit_method, result, model_params, mean_squared_error)
+    return ResultsModel(fit_method, result, model_params, mean_squared_error)
 
 
-def hampel(x, k, t0=3):
+def hampel(x: np.array, k: int, t0: Number = 3) -> List:
     """Hampel's outlier test
 
     Adapted from hampel function in R package pracma.
@@ -346,7 +364,7 @@ def hampel(x, k, t0=3):
     return indices
 
 
-def calc_median_all_plates(df):
+def calc_median_all_plates(df: pd.DataFrame) -> float:
     """Median of `Cells - Image Region Area` of all plates
 
     Calculate the median of "Cells - Image Region Area - Mean per Well"

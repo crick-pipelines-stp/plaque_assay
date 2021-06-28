@@ -6,6 +6,7 @@ Data I/O
 from datetime import datetime, timezone
 import logging
 import os
+from typing import List
 
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ from . import consts
 from . import db_models
 
 
-def read_data_from_list(plate_list):
+def read_data_from_list(plate_list: List) -> pd.DataFrame:
     """Read in data from plate list and assign dilution values by well position.
 
     Notes
@@ -69,7 +70,7 @@ def read_data_from_list(plate_list):
     return df_concat
 
 
-def get_plate_list(data_dir):
+def get_plate_list(data_dir: str) -> List:
     """Get paths to plate directories
 
     Parameters
@@ -95,7 +96,7 @@ def get_plate_list(data_dir):
     return plate_list
 
 
-def read_data_from_directory(data_dir):
+def read_data_from_directory(data_dir: str) -> pd.DataFrame:
     """Read actual barcoded plate directory
 
     This gets a plate list from `data_dir`, and then
@@ -114,7 +115,7 @@ def read_data_from_directory(data_dir):
     return read_data_from_list(plate_list)
 
 
-def read_indexfiles_from_list(plate_list):
+def read_indexfiles_from_list(plate_list: List) -> pd.DataFrame:
     """Read indexfiles from a plate list
 
     Parameters
@@ -142,7 +143,7 @@ def read_indexfiles_from_list(plate_list):
     return df_concat
 
 
-def read_indexfiles_from_directory(data_dir):
+def read_indexfiles_from_directory(data_dir: str) -> pd.DataFrame:
     """Return dataframe of indexfiles from a directory containing plates.
 
     Parameters
@@ -173,7 +174,7 @@ class DatabaseUploader:
         """commit data to LIMS serology database"""
         self.session.commit()
 
-    def already_uploaded(self, workflow_id, variant):
+    def already_uploaded(self, workflow_id: int, variant: str) -> bool:
         """
         Check if the results for a given workflow_id and variant
         have already been uploaded.
@@ -201,7 +202,7 @@ class DatabaseUploader:
         )
         return result is not None
 
-    def is_final_upload(self, workflow_id):
+    def is_final_upload(self, workflow_id: int) -> bool:
         """
         This determines if a given workflow_id is the last to be
         uploaded for that workflow_id. This is determined by the
@@ -264,7 +265,7 @@ class DatabaseUploader:
             )
         return is_final
 
-    def upload_plate_results(self, plate_results_dataset):
+    def upload_plate_results(self, plate_results_dataset: pd.DataFrame):
         """Upload raw concatenated data into database.
 
         This uploads the "raw" dataset into the LIMS serology database.
@@ -318,7 +319,7 @@ class DatabaseUploader:
             db_models.NE_raw_results, plate_results_dataset.to_dict(orient="records")
         )
 
-    def upload_indexfiles(self, indexfiles_dataset):
+    def upload_indexfiles(self, indexfiles_dataset: pd.DataFrame):
         """Upload indexfiles from the Phenix into the database
 
         This uploads the IndexFile dataset into the LIMS serology database,
@@ -368,7 +369,7 @@ class DatabaseUploader:
                 db_models.NE_raw_index, df_slice.to_dict(orient="records")
             )
 
-    def upload_normalised_results(self, norm_results):
+    def upload_normalised_results(self, norm_results: pd.DataFrame):
         """Upload normalised results into the database.
 
         Uploads the normalised data, consisting of
@@ -406,7 +407,7 @@ class DatabaseUploader:
             db_models.NE_normalized_results, norm_results.to_dict(orient="records")
         )
 
-    def upload_final_results(self, results):
+    def upload_final_results(self, results: pd.DataFrame):
         """Upload final results to database
 
         Final results are mainly IC50 and metadata.
@@ -433,7 +434,7 @@ class DatabaseUploader:
             db_models.NE_final_results, results.to_dict(orient="records")
         )
 
-    def upload_failures(self, failures):
+    def upload_failures(self, failures: pd.DataFrame):
         """Upload failure information to database
 
         Parameters
@@ -452,7 +453,7 @@ class DatabaseUploader:
                 db_models.NE_failed_results, failures.to_dict(orient="records")
             )
 
-    def upload_model_parameters(self, model_parameters):
+    def upload_model_parameters(self, model_parameters: pd.DataFrame):
         """Upload model parameters to database
 
         Parameters
@@ -472,7 +473,7 @@ class DatabaseUploader:
             db_models.NE_model_parameters, model_parameters.to_dict(orient="records")
         )
 
-    def update_workflow_tracking(self, workflow_id):
+    def update_workflow_tracking(self, workflow_id: int):
         """Update workflow_tracking table to indicate all variants for
         a workflow have been uploaded.
 
@@ -504,7 +505,7 @@ class DatabaseUploader:
             )
         # fmt: on
 
-    def upload_reporter_plate_status(self, workflow_id, variant):
+    def upload_reporter_plate_status(self, workflow_id: int, variant: str):
         """Inserts new row in NE_reporter_plate_status to indicate
         current plate (workflow_id & variant) is awaiting
         reporter decision (pass, fail).
