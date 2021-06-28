@@ -85,8 +85,8 @@ def test_calc_heuristics_dilutions():
     assert good_inhib_out is None
 
 
-def test_calc_results_model():
-    fit_method, result, model_params, mean_squared_error = stats.calc_results_model(
+def test_calc_model_results():
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
         name="test",
         df=df_good_inhibition,
         threshold=THRESHOLD,
@@ -96,3 +96,4 @@ def test_calc_results_model():
     assert fit_method == "model fit"
     assert abs(result - expected_ic50) < 50
     assert mean_squared_error < 100
+    assert isinstance(model_params, stats.ModelParams)

@@ -94,7 +94,7 @@ class Sample:
         --------
         None
         """
-        model_results = stats.calc_results_model(self.sample_name, self.data)
+        model_results = stats.calc_model_results(self.sample_name, self.data)
         self.fit_method = model_results.fit_method
         self.ic50 = model_results.result
         self.ic50_pretty = (

@@ -4,13 +4,32 @@ Stats and number crunching functions.
 
 import logging
 from numbers import Number
-from typing import NamedTuple, Tuple, List, Callable, Union
+from typing import NamedTuple, List, Callable, Optional
 
 import numpy as np
 import pandas as pd
 import scipy.optimize
 
 from . import utils
+
+
+class Intersect(NamedTuple):
+    x: Number
+    y: Number
+
+
+class ModelParams(NamedTuple):
+    top: float
+    bottom: float
+    ec50: float
+    hill_slope: float
+
+
+class ModelResults(NamedTuple):
+    fit_method: str
+    result: Number
+    model_params: Optional[ModelParams]
+    mean_squared_error: float
 
 
 def dr_3(x: np.array, top: Number, bottom: Number, ec50: Number) -> np.array:
@@ -57,7 +76,7 @@ def dr_4(
 
 def find_intersect_on_curve(
     x_min: Number, x_max: Number, curve: np.array, intersect: Number = 50
-) -> Tuple[Number, Number]:
+) -> Optional[Intersect]:
     """Find intersect of two curves.
 
     Really hacky way of finding intersect of two curves,
@@ -74,8 +93,7 @@ def find_intersect_on_curve(
 
     Returns
     --------
-    tuple
-        x, y values of intersect
+    Intersect or None
     """
     x = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     line = np.full(x.shape, intersect)
@@ -83,12 +101,12 @@ def find_intersect_on_curve(
     if len(idx) > 1:
         logging.error(f"Found more than 1 intersect. len = {len(idx)}")
         return None
-    return x[idx], curve[idx]
+    # we have a numpy array of length 1, so just get the value
+    idx = idx[0]
+    return Intersect(x[idx], curve[idx])
 
 
-def non_linear_model(
-    x: Number, y: Number, func: Callable = dr_4
-) -> Tuple[Number, Number]:
+def non_linear_model(x: Number, y: Number, func: Callable = dr_4) -> ModelParams:
     """
     fit non-linear least squares to the data
 
@@ -100,30 +118,15 @@ def non_linear_model(
 
     Returns
     --------
-    tuple
+    `plaque_assay.stats.ModelParams`
     """
     # initial guess at sensible parameters
     p0 = [0, 100, 0.015, 1]
     bounds = ((-0.01, 0, -10, -10), (100, 120, 10, 10))
-    popt, pcov = scipy.optimize.curve_fit(
+    popt, *_ = scipy.optimize.curve_fit(
         func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )
-    return popt, pcov
-
-
-def std_dev_params(pcov: np.array) -> np.array:
-    """
-    Compute the standard deviation errors on the model parameters.
-
-    Parameters
-    ----------
-    pcov: 2D array
-
-    Returns
-    --------
-    1D array
-    """
-    return np.sqrt(np.diag(pcov))
+    return ModelParams(*popt)
 
 
 def model_mse(y_observed: np.array, y_fitted: np.array) -> float:
@@ -210,7 +213,7 @@ def calc_heuristics_dilutions(
 
 def calc_heuristics_curve(
     name: str, x: np.array, y: np.array, threshold: Number, weak_threshold: Number
-) -> Union[int, None]:
+) -> Optional[int]:
     """
     heuristics based on the model fit where we cannot calculate the intercept
     at the threshold
@@ -251,16 +254,9 @@ def calc_heuristics_curve(
         return utils.result_to_int(result)
 
 
-class ResultsModel(NamedTuple):
-    fit_method: str
-    result: Number
-    model_params: Union[Number, None]
-    mean_squared_error: float
-
-
-def calc_results_model(
+def calc_model_results(
     name: str, df: pd.DataFrame, threshold: Number = 50, weak_threshold: Number = 60
-) -> ResultsModel:
+) -> ModelResults:
     """
     Try simple heuristics first without model fitting.
     Once a model is fitted try heuristics based on the fitted curve.
@@ -275,7 +271,7 @@ def calc_results_model(
 
     Returns
     --------
-    namedtuple("fit_method", "result", "model_params", "mean_squared_error")
+    `plaque_assay.stats.ModelResults`
     """
     df = df.dropna().sort_values("Dilution")
     x = df["Dilution"].values
@@ -292,7 +288,7 @@ def calc_results_model(
     else:
         # fit non-linear_model
         try:
-            model_params, _ = non_linear_model(x, y)
+            model_params = non_linear_model(x, y)
         except RuntimeError:
             model_params = None
             result = utils.result_to_int("failed to fit model")
@@ -314,10 +310,8 @@ def calc_results_model(
                 result = curve_heuristics
             else:
                 try:
-                    intersect_x, intersect_y = find_intersect_on_curve(
-                        x_min, x_max, y_fitted
-                    )
-                    result = 1 / intersect_x[0]
+                    intersect = find_intersect_on_curve(x_min, x_max, y_fitted)
+                    result = 1 / intersect.x
                     if result < 1 / x.max():
                         logging.info(
                             "%s IC50 of %s less than lowest dilution, weak inhibition",
@@ -329,7 +323,7 @@ def calc_results_model(
                     logging.error("during model fitting: %s", e)
                     result = utils.result_to_int("failed to fit model")
     logging.debug("well %s fitted with method %s", name, fit_method)
-    return ResultsModel(fit_method, result, model_params, mean_squared_error)
+    return ModelResults(fit_method, result, model_params, mean_squared_error)
 
 
 def hampel(x: np.array, k: int, t0: Number = 3) -> List:
@@ -362,22 +356,3 @@ def hampel(x: np.array, k: int, t0: Number = 3) -> List:
         if np.abs(x[i] - x0) > t0 * S0:
             indices.append(i)
     return indices
-
-
-def calc_median_all_plates(df: pd.DataFrame) -> float:
-    """Median of `Cells - Image Region Area` of all plates
-
-    Calculate the median of "Cells - Image Region Area - Mean per Well"
-    for all wells of all plates
-
-    Parameters
-    --------
-    df : pandas.DataFrame
-
-    Returns
-    ---------
-    numeric
-    """
-    median = df["Cells - Image Region Area [µm²] - Mean per Well"].median()
-    logging.info("median 'Cells = Image Region Area' for all plates %s", median)
-    return median
