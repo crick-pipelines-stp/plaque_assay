@@ -1,7 +1,7 @@
 """
 Classes to hold information about plate and well failures.
 """
-from typing import Dict
+from typing import Dict, NamedTuple
 
 
 class PlateFailure:
@@ -91,3 +91,16 @@ class WellFailure:
             "well": self.well,
             "reason": self.reason,
         }
+
+
+class PlateFailures(NamedTuple):
+    pass
+
+
+class WellFailures(NamedTuple):
+    pass
+
+
+class AllFailures(NamedTuple):
+    plate_failures: PlateFailures
+    well_failures: WellFailures

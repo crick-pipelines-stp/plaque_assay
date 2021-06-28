@@ -30,6 +30,7 @@ This also means that the well labels in this class have been converted from thei
 """
 
 import os
+from typing import List, Any
 
 import pandas as pd
 
@@ -77,8 +78,8 @@ class Plate:
         assert df["Dilution"].nunique() == 1
         self.dilution = df["Dilution"].values[0]
         self.plate_failed = False
-        self.well_failures = []
-        self.plate_failures = []
+        self.well_failures: List[Any] = []
+        self.plate_failures: List[Any] = []
         self.calc_percentage_infected()
         self.outside_image_area()
 
@@ -88,7 +89,7 @@ class Plate:
     def __str__(self):
         return f"Plate {self.barcode}"
 
-    def outside_image_area(self):
+    def outside_image_area(self) -> None:
         """QC check for `cell_region_area`
 
         Determines if `cell_region_area` is outside the expected range and
@@ -156,7 +157,7 @@ class Plate:
         df[new_colname] = df[feature] - background
         return df
 
-    def calc_percentage_infected(self):
+    def calc_percentage_infected(self) -> None:
         """Calculate percentage infected.
 
         `Percentage Infected` is the `Background Subtracted Plaque Area`
@@ -212,7 +213,7 @@ class Plate:
         )
         return df_wanted
 
-    def save_normalised_data(self, output_dir: str):
+    def save_normalised_data(self, output_dir: str) -> None:
         """Save csv of the normalised data
 
         Parameters

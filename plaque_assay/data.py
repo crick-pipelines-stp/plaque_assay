@@ -170,7 +170,7 @@ class DatabaseUploader:
     def __init__(self, session):
         self.session = session
 
-    def commit(self):
+    def commit(self) -> None:
         """commit data to LIMS serology database"""
         self.session.commit()
 
@@ -265,7 +265,7 @@ class DatabaseUploader:
             )
         return is_final
 
-    def upload_plate_results(self, plate_results_dataset: pd.DataFrame):
+    def upload_plate_results(self, plate_results_dataset: pd.DataFrame) -> None:
         """Upload raw concatenated data into database.
 
         This uploads the "raw" dataset into the LIMS serology database.
@@ -319,7 +319,7 @@ class DatabaseUploader:
             db_models.NE_raw_results, plate_results_dataset.to_dict(orient="records")
         )
 
-    def upload_indexfiles(self, indexfiles_dataset: pd.DataFrame):
+    def upload_indexfiles(self, indexfiles_dataset: pd.DataFrame) -> None:
         """Upload indexfiles from the Phenix into the database
 
         This uploads the IndexFile dataset into the LIMS serology database,
@@ -369,7 +369,7 @@ class DatabaseUploader:
                 db_models.NE_raw_index, df_slice.to_dict(orient="records")
             )
 
-    def upload_normalised_results(self, norm_results: pd.DataFrame):
+    def upload_normalised_results(self, norm_results: pd.DataFrame) -> None:
         """Upload normalised results into the database.
 
         Uploads the normalised data, consisting of
@@ -407,7 +407,7 @@ class DatabaseUploader:
             db_models.NE_normalized_results, norm_results.to_dict(orient="records")
         )
 
-    def upload_final_results(self, results: pd.DataFrame):
+    def upload_final_results(self, results: pd.DataFrame) -> None:
         """Upload final results to database
 
         Final results are mainly IC50 and metadata.
@@ -434,7 +434,7 @@ class DatabaseUploader:
             db_models.NE_final_results, results.to_dict(orient="records")
         )
 
-    def upload_failures(self, failures: pd.DataFrame):
+    def upload_failures(self, failures: pd.DataFrame) -> None:
         """Upload failure information to database
 
         Parameters
@@ -453,7 +453,7 @@ class DatabaseUploader:
                 db_models.NE_failed_results, failures.to_dict(orient="records")
             )
 
-    def upload_model_parameters(self, model_parameters: pd.DataFrame):
+    def upload_model_parameters(self, model_parameters: pd.DataFrame) -> None:
         """Upload model parameters to database
 
         Parameters
@@ -473,7 +473,7 @@ class DatabaseUploader:
             db_models.NE_model_parameters, model_parameters.to_dict(orient="records")
         )
 
-    def update_workflow_tracking(self, workflow_id: int):
+    def update_workflow_tracking(self, workflow_id: int) -> None:
         """Update workflow_tracking table to indicate all variants for
         a workflow have been uploaded.
 
@@ -505,7 +505,7 @@ class DatabaseUploader:
             )
         # fmt: on
 
-    def upload_reporter_plate_status(self, workflow_id: int, variant: str):
+    def upload_reporter_plate_status(self, workflow_id: int, variant: str) -> None:
         """Inserts new row in NE_reporter_plate_status to indicate
         current plate (workflow_id & variant) is awaiting
         reporter decision (pass, fail).

@@ -1,8 +1,9 @@
+from typing import Any
 import sqlalchemy as sql
 from sqlalchemy.ext.declarative import declarative_base
 
 
-Base = declarative_base()
+Base = declarative_base()  # type: Any
 
 
 class NE_workflow_tracking(Base):

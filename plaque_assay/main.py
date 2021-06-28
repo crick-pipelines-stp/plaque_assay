@@ -62,7 +62,7 @@ def create_local_engine() -> sqlalchemy.engine.base.Engine:
     return engine
 
 
-def run(plate_list: List):
+def run(plate_list: List[str]) -> None:
     """Run analysis pipeline.
 
     This runs the entire analysis on a pair of plates, given that the 2

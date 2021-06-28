@@ -3,8 +3,7 @@ Stats and number crunching functions.
 """
 
 import logging
-from numbers import Number
-from typing import NamedTuple, List, Callable, Optional
+from typing import NamedTuple, List, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -13,9 +12,12 @@ import scipy.optimize
 from . import utils
 
 
+Numeric = Union[int, float]
+
+
 class Intersect(NamedTuple):
-    x: Number
-    y: Number
+    x: Numeric
+    y: Numeric
 
 
 class ModelParams(NamedTuple):
@@ -27,12 +29,12 @@ class ModelParams(NamedTuple):
 
 class ModelResults(NamedTuple):
     fit_method: str
-    result: Number
+    result: Numeric
     model_params: Optional[ModelParams]
-    mean_squared_error: float
+    mean_squared_error: Optional[float]
 
 
-def dr_3(x: np.array, top: Number, bottom: Number, ec50: Number) -> np.array:
+def dr_3(x: np.array, top: Numeric, bottom: Numeric, ec50: Numeric) -> np.array:
     """3 parameter dose response curve
 
     Parameters
@@ -51,7 +53,7 @@ def dr_3(x: np.array, top: Number, bottom: Number, ec50: Number) -> np.array:
 
 
 def dr_4(
-    x: np.array, top: Number, bottom: Number, ec50: Number, hill_slope: Number
+    x: np.array, top: Numeric, bottom: Numeric, ec50: Numeric, hill_slope: Numeric
 ) -> np.array:
     """4 parameter dose response curve
 
@@ -75,7 +77,7 @@ def dr_4(
 
 
 def find_intersect_on_curve(
-    x_min: Number, x_max: Number, curve: np.array, intersect: Number = 50
+    x_min: Numeric, x_max: Numeric, curve: np.array, intersect: Numeric = 50
 ) -> Optional[Intersect]:
     """Find intersect of two curves.
 
@@ -106,7 +108,7 @@ def find_intersect_on_curve(
     return Intersect(x[idx], curve[idx])
 
 
-def non_linear_model(x: Number, y: Number, func: Callable = dr_4) -> ModelParams:
+def non_linear_model(x: Numeric, y: Numeric, func: Callable = dr_4) -> ModelParams:
     """
     fit non-linear least squares to the data
 
@@ -150,8 +152,8 @@ def model_mse(y_observed: np.array, y_fitted: np.array) -> float:
 
 
 def calc_heuristics_dilutions(
-    group: pd.DataFrame, threshold: Number, weak_threshold: Number
-) -> Number:
+    group: pd.DataFrame, threshold: Numeric, weak_threshold: Numeric
+) -> Optional[Numeric]:
     """Simple heuristics based on the values without model fitting
 
     Parameters
@@ -209,10 +211,12 @@ def calc_heuristics_dilutions(
         result = "no inhibition"
     if result:
         return utils.result_to_int(result)
+    else:
+        return None
 
 
 def calc_heuristics_curve(
-    name: str, x: np.array, y: np.array, threshold: Number, weak_threshold: Number
+    name: str, x: np.array, y: np.array, threshold: Numeric, weak_threshold: Numeric
 ) -> Optional[int]:
     """
     heuristics based on the model fit where we cannot calculate the intercept
@@ -252,10 +256,12 @@ def calc_heuristics_curve(
             result = "failed to fit model"
     if result:
         return utils.result_to_int(result)
+    else:
+        return None
 
 
 def calc_model_results(
-    name: str, df: pd.DataFrame, threshold: Number = 50, weak_threshold: Number = 60
+    name: str, df: pd.DataFrame, threshold: int = 50, weak_threshold: int = 60
 ) -> ModelResults:
     """
     Try simple heuristics first without model fitting.
@@ -311,7 +317,11 @@ def calc_model_results(
             else:
                 try:
                     intersect = find_intersect_on_curve(x_min, x_max, y_fitted)
-                    result = 1 / intersect.x
+                    if intersect:
+                        result = 1 / intersect.x
+                    else:
+                        model_params = None
+                        result = utils.result_to_int("failed to fit model")
                     if result < 1 / x.max():
                         logging.info(
                             "%s IC50 of %s less than lowest dilution, weak inhibition",
@@ -326,7 +336,7 @@ def calc_model_results(
     return ModelResults(fit_method, result, model_params, mean_squared_error)
 
 
-def hampel(x: np.array, k: int, t0: Number = 3) -> List:
+def hampel(x: np.array, k: int, t0: int = 3) -> List:
     """Hampel's outlier test
 
     Adapted from hampel function in R package pracma.

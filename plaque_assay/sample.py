@@ -2,6 +2,7 @@
 module docstring
 """
 import logging
+from typing import List, Any
 
 from . import stats
 from . import failure
@@ -65,7 +66,7 @@ class Sample:
         self.sample_name = sample_name
         self.data = data
         self.variant = variant
-        self.failures = []
+        self.failures: List[Any] = []
         self.calc_ic50()
         self.is_positive_control = sample_name in POSITIVE_CONTROL_WELLS
         self.check_positive_control()
@@ -103,7 +104,7 @@ class Sample:
         self.model_params = model_results.model_params
         self.mean_squared_error = model_results.mean_squared_error
 
-    def check_positive_control(self):
+    def check_positive_control(self) -> None:
         """
         If this sample is a postitive control, then determine
         if the IC50 value is between a variant-specific range.
@@ -136,7 +137,7 @@ class Sample:
             )
             self.failures.append(positive_control_failure)
 
-    def check_duplicate_differences(self):
+    def check_duplicate_differences(self) -> None:
         """
         Want to calculate the differences between duplicates and determine
         if the difference is larger than some threshold. If this is the case
@@ -173,7 +174,7 @@ class Sample:
             )
             self.failures.append(duplicate_failure)
 
-    def check_for_model_fit_failure(self):
+    def check_for_model_fit_failure(self) -> None:
         """
         If the model has failed to fit this should also be flagged as a QC failure
 
@@ -194,7 +195,7 @@ class Sample:
             )
             self.failures.append(model_fit_failure)
 
-    def plot(self):
+    def plot(self) -> List:
         """
         Simple static plot of points and fitted curve.
 
@@ -225,12 +226,15 @@ class Sample:
             plt.plot(1 / x, curve, linestyle="--", label="4 param dose-response")
             plt.legend(loc="upper left")
             try:
-                intersect_x, intersect_y = stats.find_intersect_on_curve(
-                    x_min, x_max, curve
-                )
-                plt.plot(
-                    1 / intersect_x, intersect_y, marker="P", color="black", zorder=999
-                )
+                intersect = stats.find_intersect_on_curve(x_min, x_max, curve)
+                if intersect:
+                    plt.plot(
+                        1.0 / intersect.x,
+                        intersect.y,
+                        marker="P",
+                        color="black",
+                        zorder=999,
+                    )
             except RuntimeError:
                 # caused by stats.find_intersect_on_curve finding more than
                 # 1 intersect point, so a model fit failure anyway, so dont

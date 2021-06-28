@@ -6,7 +6,7 @@ Class to encapsulate all plates and samples.
 import logging
 import os
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, List, Union, Any
 
 import pandas as pd
 
@@ -65,33 +65,32 @@ class Experiment:
             sample_dict[name] = Sample(name, sample_df, self.variant)
         return sample_dict
 
-    def get_failures_as_json(self) -> Dict:
+    def get_failures_as_json(self) -> Dict[str, Union[List, Dict]]:
         """Return failures as a dictionary.
 
         Returns
         -------
         dict
         """
-        failure_dict = {}
-        failure_dict["plate_failures"] = {}
-        failure_dict["well_failures"] = []
+        well_failures = []
+        plate_failures = {}
         for plate_name, plate_object in self.plates:
             # plate failures
             if plate_object.plate_failed:
                 plate_failures_as_dict = [
                     i.to_dict() for i in plate_object.plate_failures
                 ]
-                failure_dict["plate_failures"][plate_name] = plate_failures_as_dict
+                plate_failures[plate_name] = plate_failures_as_dict
             # well failures
             # convert WellFailure objects to dictionaries
             well_failures_as_dict = [i.to_dict() for i in plate_object.well_failures]
-            failure_dict["well_failures"].extend(well_failures_as_dict)
+            well_failures.extend(well_failures_as_dict)
         # failures in the Sample object are actually failures of the
         # positive control wells
-        for sample_name, sample_object in self.samples:
+        for _, sample_object in self.samples:
             sample_failures_as_dict = [i.to_dict() for i in sample_object.failures]
-            failure_dict["well_failures"].extend(sample_failures_as_dict)
-        return failure_dict
+            well_failures.extend(sample_failures_as_dict)
+        return {"plate_failures": plate_failures, "well_failures": well_failures}
 
     def get_failures_as_dataframe(self) -> pd.DataFrame:
         """Return failures a dataframe
@@ -107,7 +106,7 @@ class Experiment:
         reasons = []
         # go through plate failures first as have to join multiple wells into a string
         plate_failures = failures_dict["plate_failures"]
-        for _, plate_list in plate_failures.items():
+        for plate_list in plate_failures.values():
             plate = plate_list[0]  # it's a single-element list
             types.append(plate["type"])
             plates.append(plate["plate"])
@@ -138,7 +137,7 @@ class Experiment:
         df["variant"] = self.variant
         return df
 
-    def save_failures_as_dataframe(self, output_dir: str):
+    def save_failures_as_dataframe(self, output_dir: str) -> None:
         """Save failures as a csv file.
 
         Parameters
@@ -181,7 +180,7 @@ class Experiment:
         results_dict = self.get_results_as_json()
         result_mapping = results_dict["result_mapping"]
         wells = []
-        ic50s = []
+        ic50s: List[Any] = []
         statuses = []
         for well, value in results_dict["results"].items():
             wells.append(well)
@@ -199,7 +198,7 @@ class Experiment:
         df["variant"] = self.variant
         return df
 
-    def save_results_as_dataframe(self, output_dir: str):
+    def save_results_as_dataframe(self, output_dir: str) -> None:
         results_df = self.get_results_as_dataframe()
         result_output_path = os.path.join(
             output_dir, f"results_{self.experiment_name}.csv"
@@ -222,7 +221,7 @@ class Experiment:
         df_concat["variant"] = self.variant
         return df_concat
 
-    def save_normalised_data(self, output_dir: str, concatenate: bool = True):
+    def save_normalised_data(self, output_dir: str, concatenate: bool = True) -> None:
         """Save normalised data as a csv file
 
         Parameters
