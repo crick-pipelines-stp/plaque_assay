@@ -28,4 +28,4 @@ jobs:
         pip install mypy
     - name: mypy
       run: |
-        mypy plaque_assay/
+        mypy plaque_assay/ --ignore-missing-imports
