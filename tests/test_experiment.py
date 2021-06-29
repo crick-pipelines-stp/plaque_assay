@@ -18,12 +18,6 @@ experiment_list = [
 ]
 
 
-def test_experiment_failures_as_json():
-    for experiment in experiment_list:
-        failures_dict = experiment.get_failures_as_json()
-        assert isinstance(failures_dict, dict)
-
-
 def test_experiment_failures_as_dataframe():
     for experiment in experiment_list:
         failures_df = experiment.get_failures_as_dataframe()

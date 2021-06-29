@@ -109,7 +109,7 @@ def test_check_positive_control_failure():
     assert len(sample_wrong_ic50.failures) > 0
     # check they're actually failures for unexpected positive control values
     assert any(
-        i.reason.startswith("positive control failure")
+        i.failure_reason.startswith("positive control failure")
         for i in sample_wrong_ic50.failures
     )
     # use the india (delta) variant, should pass
@@ -132,7 +132,7 @@ def test_check_duplicate_differences():
     assert len(sample_bad_rep.failures) > 0
     # check that the failure is actually due to duplicate difference
     assert any(
-        i.reason.startswith("2 or more duplicates differ")
+        i.failure_reason.startswith("2 or more duplicates differ")
         for i in sample_bad_rep.failures
     )
 
@@ -150,5 +150,6 @@ def test_check_for_model_fit_failure():
     sample = Sample(sample_name="A01", data=model_failure_data, variant=VARIANT)
     assert len(sample.failures) > 0
     assert any(
-        i.reason == "failed to fit model to data points" for i in sample.failures
+        i.failure_reason == "failed to fit model to data points"
+        for i in sample.failures
     )

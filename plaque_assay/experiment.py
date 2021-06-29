@@ -6,7 +6,7 @@ Class to encapsulate all plates and samples.
 import logging
 import os
 from collections import defaultdict
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Any
 
 import pandas as pd
 
@@ -65,33 +65,6 @@ class Experiment:
             sample_dict[name] = Sample(name, sample_df, self.variant)
         return sample_dict
 
-    def get_failures_as_json(self) -> Dict[str, Union[List, Dict]]:
-        """Return failures as a dictionary.
-
-        Returns
-        -------
-        dict
-        """
-        well_failures = []
-        plate_failures = {}
-        for plate_name, plate_object in self.plates:
-            # plate failures
-            if plate_object.plate_failed:
-                plate_failures_as_dict = [
-                    i.to_dict() for i in plate_object.plate_failures
-                ]
-                plate_failures[plate_name] = plate_failures_as_dict
-            # well failures
-            # convert WellFailure objects to dictionaries
-            well_failures_as_dict = [i.to_dict() for i in plate_object.well_failures]
-            well_failures.extend(well_failures_as_dict)
-        # failures in the Sample object are actually failures of the
-        # positive control wells
-        for _, sample_object in self.samples:
-            sample_failures_as_dict = [i.to_dict() for i in sample_object.failures]
-            well_failures.extend(sample_failures_as_dict)
-        return {"plate_failures": plate_failures, "well_failures": well_failures}
-
     def get_failures_as_dataframe(self) -> pd.DataFrame:
         """Return failures a dataframe
 
@@ -99,40 +72,12 @@ class Experiment:
         --------
         pandas.DataFrame
         """
-        failures_dict = self.get_failures_as_json()
-        types = []
-        plates = []
-        wells = []
-        reasons = []
-        # go through plate failures first as have to join multiple wells into a string
-        plate_failures = failures_dict["plate_failures"]
-        for plate_list in plate_failures.values():
-            plate = plate_list[0]  # it's a single-element list
-            types.append(plate["type"])
-            plates.append(plate["plate"])
-            wells.append(";".join(plate["wells"]))
-            reasons.append(plate["reason"])
-            logging.warning(
-                "plate %s failed due to %s", plate["plate"], plate["reason"]
-            )
-        # go through well failures
-        well_failures = failures_dict["well_failures"]
-        for well_failure in well_failures:
-            logging.warning(
-                "well %s failed due to %s", well_failure["well"], well_failure["reason"]
-            )
-            types.append(well_failure["type"])
-            plates.append(well_failure["plate"])
-            wells.append(well_failure["well"])
-            reasons.append(well_failure["reason"])
-        df = pd.DataFrame(
-            {
-                "failure_type": types,
-                "plate": plates,
-                "well": wells,
-                "failure_reason": reasons,
-            }
-        )
+        failures_list = []
+        for _, plate_object in self.plates:
+            if plate_object.plate_failed:
+                failures_list.extend(plate_object.plate_failures)
+            failures_list.extend(plate_object.well_failures)
+        df = pd.DataFrame(failures_list)
         df["experiment"] = self.experiment_name
         df["variant"] = self.variant
         return df
