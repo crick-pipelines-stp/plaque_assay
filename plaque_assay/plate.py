@@ -110,7 +110,7 @@ class Plate:
             self.plate_failed = True
             failed_plate = failure.PlateFailure(
                 plate=self.barcode,
-                wells=";".join(control_outliers["Well"].tolist()),
+                wells=";".join(control_outliers["Well"]),
                 failure_reason=failure.CELL_IMAGE_AREA_FAILURE_REASON,
             )
             self.plate_failures.add(failed_plate)
@@ -126,9 +126,10 @@ class Plate:
             # as a possible plate failure
             if outliers.shape[0] > 8:
                 # flag possible plate fail
+                self.plate_failed = True
                 failed_plate = failure.PlateFailure(
                     plate=self.barcode,
-                    wells=";".join(outliers["Well"].tolist()),
+                    wells=";".join(outliers["Well"]),
                     failure_reason=failure.DAPI_PLATE_FAILURE_REASON,
                 )
                 self.plate_failures.add(failed_plate)
