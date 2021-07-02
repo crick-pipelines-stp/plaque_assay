@@ -22,6 +22,7 @@ def test_experiment_failures_as_dataframe():
     for experiment in experiment_list:
         failures_df = experiment.get_failures_as_dataframe()
         assert isinstance(failures_df, pd.DataFrame)
+        assert failures_df.isnull().sum().sum() == 0
 
 
 def test_experiment_results_as_json():

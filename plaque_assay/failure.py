@@ -11,7 +11,7 @@ DAPI_PLATE_FAILURE_REASON = "possible plate fail - check DAPI plate image"
 
 class PlateFailure(NamedTuple):
     plate: str
-    wells: str
+    well: str
     failure_reason: str
     failure_type: str = "plate_failure"
 

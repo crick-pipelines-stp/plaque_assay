@@ -110,7 +110,7 @@ class Plate:
             self.plate_failed = True
             failed_plate = failure.PlateFailure(
                 plate=self.barcode,
-                wells=";".join(control_outliers["Well"]),
+                well=";".join(control_outliers["Well"]),
                 failure_reason=failure.CELL_IMAGE_AREA_FAILURE_REASON,
             )
             self.plate_failures.add(failed_plate)
@@ -129,7 +129,7 @@ class Plate:
                 self.plate_failed = True
                 failed_plate = failure.PlateFailure(
                     plate=self.barcode,
-                    wells=";".join(outliers["Well"]),
+                    well=";".join(outliers["Well"]),
                     failure_reason=failure.DAPI_PLATE_FAILURE_REASON,
                 )
                 self.plate_failures.add(failed_plate)
@@ -182,7 +182,7 @@ class Plate:
             self.plate_failed = True
             failed_plate = failure.PlateFailure(
                 plate=self.barcode,
-                wells=";".join(VIRUS_ONLY_WELLS),
+                well=";".join(VIRUS_ONLY_WELLS),
                 failure_reason=reason,
             )
             self.plate_failures.add(failed_plate)
