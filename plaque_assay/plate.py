@@ -77,6 +77,7 @@ class Plate:
         self.barcode = df["Plate_barcode"].values[0]
         assert df["Dilution"].nunique() == 1
         self.dilution = df["Dilution"].values[0]
+        self.variant = df["variant"].values[0]
         self.plate_failed = False
         self.well_failures: Set[failure.WellFailure] = set()
         self.plate_failures: Set[failure.PlateFailure] = set()
@@ -175,8 +176,9 @@ class Plate:
             Adds a `plaque_assay.failure.PlateFailure` to
             `self.plate_failures` if plate has failed.
         """
-        lower_limit = qc_criteria.infection_rate_low
-        upper_limit = qc_criteria.infection_rate_high
+        infection_limits = qc_criteria.infection_rate[self.variant]
+        lower_limit = infection_limits["infection_rate_low"]
+        upper_limit = infection_limits["infection_rate_high"]
         if infection < lower_limit or infection > upper_limit:
             reason = f"virus-only infection median ({infection:3f}) outside range: ({lower_limit}, {upper_limit})"
             self.plate_failed = True
