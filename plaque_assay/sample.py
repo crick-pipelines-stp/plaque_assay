@@ -2,7 +2,7 @@
 module docstring
 """
 import logging
-from typing import List, Any
+from typing import List, Union, Set
 
 from . import stats
 from . import failure
@@ -39,11 +39,12 @@ class Sample:
     data : pd.DataFrame
         Dataframe containing results filtered to a single sample. Containing
         2 columns: `dilution` and `value`.
-    failures : list
-        List containing potential `failures.WellFailures`. These include reasons
+    failures : set
+        set containing potential `failures.WellFailures`. These include reasons
         such as:
         - invalid IC50 value if the sample is a positive control
         - failing to fit a model
+        - model with mean squared error > 150
         - discordant replicate values
     is_positive_control : bool
         Whether or not the sample is a positive control or not.
@@ -66,7 +67,7 @@ class Sample:
         self.sample_name = sample_name
         self.data = data
         self.variant = variant
-        self.failures: List[Any] = []
+        self.failures: Set[Union[failure.WellFailure, failure.PlateFailure]] = set()
         self.calc_ic50()
         self.is_positive_control = sample_name in POSITIVE_CONTROL_WELLS
         self.check_positive_control()
@@ -103,6 +104,7 @@ class Sample:
         )
         self.model_params = model_results.model_params
         self.mean_squared_error = model_results.mean_squared_error
+        self.check_for_model_mse_failure()
 
     def check_positive_control(self) -> None:
         """
@@ -134,7 +136,7 @@ class Sample:
             positive_control_failure = failure.WellFailure(
                 well=self.sample_name, plate="DILUTION SERIES", failure_reason=reason,
             )
-            self.failures.append(positive_control_failure)
+            self.failures.add(positive_control_failure)
 
     def check_duplicate_differences(self) -> None:
         """
@@ -171,7 +173,7 @@ class Sample:
                 plate="DILUTION SERIES",
                 failure_reason=f"2 or more duplicates differ by >= {difference_threshold} % infected",
             )
-            self.failures.append(duplicate_failure)
+            self.failures.add(duplicate_failure)
 
     def check_for_model_fit_failure(self) -> None:
         """
@@ -192,7 +194,31 @@ class Sample:
                 plate="DILUTION SERIES",
                 failure_reason="failed to fit model to data points",
             )
-            self.failures.append(model_fit_failure)
+            self.failures.add(model_fit_failure)
+
+    def check_for_model_mse_failure(self, limit=150) -> None:
+        """
+        If mean squared error of the model is greater than `limit`,
+        then flag as a well failure
+
+        Parameters
+        -----------
+        limit: float or int
+
+        Returns
+        --------
+        None
+            Possibly adds `plaque_assay.failure.WellFailure`
+            to `self.failures`.
+        """
+        if self.mean_squared_error is not None:
+            if self.mean_squared_error > limit:
+                model_mse_failure = failure.WellFailure(
+                    well=self.sample_name,
+                    plate="DILUTION SERIES",
+                    failure_reason=f"model MSE > {limit} ({self.mean_squared_error:.3f})",
+                )
+                self.failures.add(model_mse_failure)
 
     def plot(self) -> List:
         """
