@@ -37,6 +37,7 @@ def setup_module():
     )
     session.add(workflow_191)
     session.commit()
+    run_191_england2()
 
 
 def teardown_module():
@@ -44,7 +45,7 @@ def teardown_module():
     pass
 
 
-def test_integration():
+def run_191_england2():
     plate_list = PLATE_LIST
     dataset = data.read_data_from_list(plate_list)
     indexfiles = data.read_indexfiles_from_list(plate_list)
@@ -133,3 +134,10 @@ def test_normalised_results():
     )
     df_191 = pd.read_sql(query.statement, con=engine)
     assert df_191.shape[0] > 0
+
+
+def test_already_uploaded():
+    lims_db = data.DatabaseUploader(session)
+    variant = "England2"
+    workflow_id = 191
+    assert lims_db.already_uploaded(workflow_id, variant)
