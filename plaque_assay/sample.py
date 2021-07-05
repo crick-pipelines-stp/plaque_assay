@@ -104,7 +104,7 @@ class Sample:
         )
         self.model_params = model_results.model_params
         self.mean_squared_error = model_results.mean_squared_error
-        self.check_for_model_mse_failure()
+        self.check_for_model_mse_failure(qc_criteria.mse_upper_limit)
 
     def check_positive_control(self) -> None:
         """
@@ -196,14 +196,14 @@ class Sample:
             )
             self.failures.add(model_fit_failure)
 
-    def check_for_model_mse_failure(self, limit=150) -> None:
+    def check_for_model_mse_failure(self, mse_upper_limit: Union[int, float]) -> None:
         """
         If mean squared error of the model is greater than `limit`,
         then flag as a well failure
 
         Parameters
         -----------
-        limit: float or int
+        mse_upper_limit: float or int
 
         Returns
         --------
@@ -212,11 +212,11 @@ class Sample:
             to `self.failures`.
         """
         if self.mean_squared_error is not None:
-            if self.mean_squared_error > limit:
+            if self.mean_squared_error > mse_upper_limit:
                 model_mse_failure = failure.WellFailure(
                     well=self.sample_name,
                     plate="DILUTION SERIES",
-                    failure_reason=f"model MSE > {limit} ({self.mean_squared_error:.3f})",
+                    failure_reason=f"model MSE > {mse_upper_limit} ({self.mean_squared_error:.3f})",
                 )
                 self.failures.add(model_mse_failure)
 

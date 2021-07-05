@@ -71,3 +71,9 @@ positive_control_ic50 = {
 # the difference between replicates in "percentage infected"
 # over which, the duplicates will be considered too far apart
 duplicate_difference = 37
+
+
+# The model/curve mean squared error upper limit,
+# any model with an MSE greater than this will
+# be flagged as a well failure.
+mse_upper_limit = 150
