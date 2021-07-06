@@ -10,8 +10,9 @@ import sqlalchemy
 
 from plaque_assay.experiment import Experiment
 from plaque_assay.errors import AlreadyUploadedError, DatabaseCredentialError
-from plaque_assay import data
-from plaque_assay import utils
+from . import ingest
+from . import db_uploader
+from . import utils
 
 
 def create_engine(test: bool = True) -> sqlalchemy.engine.base.Engine:
@@ -88,8 +89,8 @@ def run(plate_list: List[str]) -> None:
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
-    dataset = data.read_data_from_list(plate_list)
-    indexfiles = data.read_indexfiles_from_list(plate_list)
+    dataset = ingest.read_data_from_list(plate_list)
+    indexfiles = ingest.read_indexfiles_from_list(plate_list)
     # add variant information to dataset and indexfiles dataframes
     variant = utils.get_variant_from_plate_list(plate_list, session)
     dataset["variant"] = variant
@@ -100,7 +101,7 @@ def run(plate_list: List[str]) -> None:
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
     model_parameters = experiment.get_model_parameters()
-    lims_db = data.DatabaseUploader(session)
+    lims_db = db_uploader.DatabaseUploader(session)
     if lims_db.already_uploaded(workflow_id, variant):
         raise AlreadyUploadedError(
             f"workflow:{workflow_id} variant:{variant} already have results in the database"

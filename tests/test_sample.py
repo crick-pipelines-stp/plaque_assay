@@ -119,10 +119,6 @@ def test_check_positive_control_failure():
         variant="B.1.617.2 (India)",
     )
     assert len(sample_right_ic50.failures) == 0
-    sample_unknown_variant = Sample(
-        sample_name="A06", data=good_but_wrong_ic50_for_pos_cntrl, variant="TEST",
-    )
-    assert len(sample_unknown_variant.failures) == 0
 
 
 def test_check_duplicate_differences():

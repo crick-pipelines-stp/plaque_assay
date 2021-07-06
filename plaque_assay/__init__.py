@@ -1,5 +1,5 @@
 from plaque_assay import main
-from plaque_assay import data
+from plaque_assay import ingest
 from plaque_assay import stats
 from plaque_assay import utils
 from plaque_assay import experiment
@@ -14,7 +14,7 @@ from plaque_assay import errors
 
 __all__ = [
     "main",
-    "data",
+    "ingest",
     "stats",
     "utils",
     "experiment",

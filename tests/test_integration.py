@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 import pandas as pd
 import sqlalchemy
 
-from plaque_assay import data, db_models, utils
+from plaque_assay import ingest, db_uploader, db_models, utils
 from plaque_assay.experiment import Experiment
 
 
@@ -47,8 +47,8 @@ def teardown_module():
 
 def run_191_england2():
     plate_list = PLATE_LIST
-    dataset = data.read_data_from_list(plate_list)
-    indexfiles = data.read_indexfiles_from_list(plate_list)
+    dataset = ingest.read_data_from_list(plate_list)
+    indexfiles = ingest.read_indexfiles_from_list(plate_list)
     # add variant information to dataset and indexfiles dataframes
     variant = utils.get_variant_from_plate_list(plate_list, session)
     dataset["variant"] = variant
@@ -59,7 +59,7 @@ def run_191_england2():
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
     model_parameters = experiment.get_model_parameters()
-    lims_db = data.DatabaseUploader(session)
+    lims_db = db_uploader.DatabaseUploader(session)
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
     lims_db.upload_normalised_results(normalised_data)
@@ -137,7 +137,7 @@ def test_normalised_results():
 
 
 def test_already_uploaded():
-    lims_db = data.DatabaseUploader(session)
+    lims_db = db_uploader.DatabaseUploader(session)
     variant = "England2"
     workflow_id = 191
     assert lims_db.already_uploaded(workflow_id, variant)
