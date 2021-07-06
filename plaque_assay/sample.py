@@ -1,7 +1,6 @@
 """
 module docstring
 """
-import logging
 from typing import List, Union, Set
 
 from . import stats
@@ -123,11 +122,6 @@ class Sample:
         None
         """
         if not self.is_positive_control:
-            return None
-        if qc_criteria.positive_control_ic50.get(self.variant) is None:
-            # no positive control IC50 QC criteria defined for this variant
-            # so don't flag anything.
-            logging.warning(f"No QC criteria defined for this variant {self.variant}")
             return None
         lower_limit = qc_criteria.positive_control_ic50[self.variant]["low"]
         upper_limit = qc_criteria.positive_control_ic50[self.variant]["high"]
