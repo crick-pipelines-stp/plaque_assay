@@ -177,8 +177,8 @@ class Plate:
             `self.plate_failures` if plate has failed.
         """
         infection_limits = qc_criteria.infection_rate[self.variant]
-        lower_limit = infection_limits["infection_rate_low"]
-        upper_limit = infection_limits["infection_rate_high"]
+        lower_limit = infection_limits["low"]
+        upper_limit = infection_limits["high"]
         if infection < lower_limit or infection > upper_limit:
             reason = f"virus-only infection median ({infection:3f}) outside range: ({lower_limit}, {upper_limit})"
             self.plate_failed = True

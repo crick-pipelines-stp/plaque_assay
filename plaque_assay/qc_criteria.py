@@ -34,12 +34,10 @@ low_cells_image_region_area_high = 1.5
 # "Background Subtracted Plaque Area" of the virus-only-wells
 # The plate get's flagged is this is out of the expected limits.
 # set the standard limits for variants
-infection_rate: DefaultDict[str, Dict] = defaultdict(
-    lambda: {"infection_rate_low": 0.4, "infection_rate_high": 0.8}
-)
+infection_rate: DefaultDict[str, Dict] = defaultdict(lambda: {"low": 0.4, "high": 0.8})
 # variant-specific limits:
 # B1351 infection rate should always be greater than 0.65
-infection_rate["B1351"] = {"infection_rate_low": 0.65, "infection_rate_high": np.inf}
+infection_rate["B1351"] = {"low": 0.65, "high": np.inf}
 
 
 # 6. Divide each well’s “Background Subtracted Plaque Area” by the median calculated
