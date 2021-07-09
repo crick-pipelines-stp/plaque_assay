@@ -1,4 +1,5 @@
 from plaque_assay.sample import Sample
+from plaque_assay.failure import WellFailure
 
 import pandas as pd
 
@@ -27,6 +28,18 @@ perc_good = [
     23.787072,
     21.955933,
     12.517334,
+    13.988952,
+]
+
+
+perc_high_mse = [
+    180.556437,
+    80.200186,
+    60.246412,
+    30.365569,
+    11.787072,
+    30.955933,
+    3.517334,
     13.988952,
 ]
 
@@ -94,6 +107,10 @@ good_but_wrong_ic50_for_pos_cntrl = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_wrong_ic50}
 )
 
+high_mse = pd.DataFrame(
+    {"Dilution": dilutions, "Percentage Infected": perc_high_mse}
+)
+
 
 def test_check_positive_control():
     sample_good = Sample(sample_name="A06", data=good_test_data, variant=VARIANT)
@@ -149,3 +166,12 @@ def test_check_for_model_fit_failure():
         i.failure_reason == "failed to fit model to data points"
         for i in sample.failures
     )
+
+
+def test_check_for_high_mse():
+    sample = Sample(sample_name="A01", data=high_mse, variant=VARIANT)
+    assert len(sample.failures) > 0
+    failure = list(sample.failures)[0]
+    assert isinstance(failure, WellFailure)
+    assert failure.failure_reason.startswith("model MSE")
+

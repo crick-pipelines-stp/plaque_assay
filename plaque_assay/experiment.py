@@ -77,6 +77,8 @@ class Experiment:
             if plate_object.plate_failed:
                 failures_list.extend(plate_object.plate_failures)
             failures_list.extend(plate_object.well_failures)
+        for _, sample_object in self.samples:
+            failures_list.extend(sample_object.failures)
         df = pd.DataFrame(failures_list)
         df["experiment"] = self.experiment_name
         df["variant"] = self.variant

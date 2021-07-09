@@ -23,6 +23,15 @@ def test_experiment_failures_as_dataframe():
         failures_df = experiment.get_failures_as_dataframe()
         assert isinstance(failures_df, pd.DataFrame)
         assert failures_df.isnull().sum().sum() == 0
+        # check we've got well failures
+        well_failures = failures_df[failures_df["failure_type"] == "well_failure"]
+        assert well_failures.shape[0] > 0
+        # check we've picked up the sample errors
+        mse_failures = well_failures[well_failures["failure_reason"].str.startswith("model MSE")]
+        assert mse_failures.shape[0] > 0
+        # check we've got plate failures
+        plate_failures = failures_df[failures_df["failure_type"] == "plate_failure"]
+        assert plate_failures.shape[0] > 0
 
 
 def test_experiment_results_as_json():
