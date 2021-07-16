@@ -128,9 +128,15 @@ class Plate:
             if outliers.shape[0] > 8:
                 # flag possible plate fail
                 self.plate_failed = True
+                # if there's too many wells then this string wont
+                # fit in the NE_failed_results.well column which
+                # is varchar(45)
+                well_names = ";".join(outliers["Well"])
+                if len(well_names) >= 45:
+                    well_names = "multiple wells (>8)"
                 failed_plate = failure.PlateFailure(
                     plate=self.barcode,
-                    well=";".join(outliers["Well"]),
+                    well="multiple wells (>8)",
                     failure_reason=failure.DAPI_PLATE_FAILURE_REASON,
                 )
                 self.plate_failures.add(failed_plate)
