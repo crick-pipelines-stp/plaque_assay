@@ -17,7 +17,7 @@ class PlateFailure(NamedTuple):
 
 
 class WellFailure(NamedTuple):
-    well: str
     plate: str
+    well: str
     failure_reason: str
     failure_type: str = "well_failure"
