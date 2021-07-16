@@ -118,8 +118,8 @@ class Plate:
         if outliers.shape[0]:
             for _, row in outliers.iterrows():
                 well_failure = failure.WellFailure(
-                    well=row["Well"],
                     plate=self.barcode,
+                    well=row["Well"],
                     failure_reason=failure.CELL_REGION_FAILURE_REASON,
                 )
                 self.well_failures.add(well_failure)

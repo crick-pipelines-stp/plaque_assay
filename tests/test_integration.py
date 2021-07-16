@@ -9,8 +9,10 @@ from plaque_assay.experiment import Experiment
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "NA_raw_data"))
-PLATE_LIST = [os.path.join(TEST_DATA_DIR, i) for i in os.listdir(TEST_DATA_DIR)]
+TEST_DATA_DIR_191_ENG2 = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_191_Eng2"))
+TEST_DATA_DIR_228_DELTA = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_228_delta"))
+PLATE_LIST_191_ENG2 = [os.path.join(TEST_DATA_DIR_191_ENG2, i) for i in os.listdir(TEST_DATA_DIR_191_ENG2)]
+PLATE_LIST_228_DELTA = [os.path.join(TEST_DATA_DIR_228_DELTA, i) for i in os.listdir(TEST_DATA_DIR_228_DELTA)]
 
 
 def setup_module():
@@ -26,7 +28,11 @@ def setup_module():
     variant_england2 = db_models.NE_available_strains(
         mutant_strain="England2", plate_id_1="S01", plate_id_2="S02"
     )
+    variant_delta = db_models.NE_available_strains(
+        mutant_strain="B.1.617.2 (India)", plate_id_1="S09", plate_id_2="S10"
+    )
     session.add(variant_england2)
+    session.add(variant_delta)
     # add workflows to testing database
     # just required columns
     workflow_191 = db_models.NE_workflow_tracking(
@@ -35,9 +41,17 @@ def setup_module():
         no_of_variants=1,
         workflow_id=191,
     )
+    workflow_228 = db_models.NE_workflow_tracking(
+        master_plate="master_plate_string_2",
+        start_date=datetime.now() - timedelta(days=1),
+        no_of_variants=5,
+        workflow_id=228,
+    )
     session.add(workflow_191)
+    session.add(workflow_228)
     session.commit()
-    run_191_england2()
+    run_experiment(PLATE_LIST_191_ENG2)
+    run_experiment(PLATE_LIST_228_DELTA)
 
 
 def teardown_module():
@@ -45,8 +59,7 @@ def teardown_module():
     pass
 
 
-def run_191_england2():
-    plate_list = PLATE_LIST
+def run_experiment(plate_list):
     dataset = ingest.read_data_from_list(plate_list)
     indexfiles = ingest.read_indexfiles_from_list(plate_list)
     # add variant information to dataset and indexfiles dataframes
@@ -141,3 +154,47 @@ def test_already_uploaded():
     variant = "England2"
     workflow_id = 191
     assert lims_db.already_uploaded(workflow_id, variant)
+
+
+def test_failed_results_228():
+    """
+    228 Delta has lots of failures, check that the
+    failure table is as expected.
+    """
+    query = session.query(db_models.NE_failed_results).filter(
+        db_models.NE_failed_results.workflow_id == 228,
+        db_models.NE_failed_results.variant == "B.1.617.2 (India)"
+    )
+    df_failures = pd.read_sql(query.statement, con=engine)
+    # check we have some entries
+    assert df_failures.shape[0] > 0
+    # check we have both plate and well failures
+    assert df_failures["failure_type"].nunique() == 2
+    type_of_failures = df_failures["failure_type"].unique()
+    for failure_type in ["well_failure", "plate_failure"]:
+        assert failure_type in type_of_failures
+    # check that there are no plate and well column mix-ups
+    # can do this by checking that no well labels end with "000228"
+    for i in df_failures["well"].values:
+        assert not i.endswith("000228")
+    for i in df_failures["plate"].values:
+        assert i.endswith(("000228", "DILUTION SERIES"))
+
+
+def test_failed_results_191():
+    """check that the failure table is as expected"""
+    query = session.query(db_models.NE_failed_results).filter(
+        db_models.NE_failed_results.workflow_id == 191,
+        db_models.NE_failed_results.variant == "England2"
+    )
+    df_failures = pd.read_sql(query.statement, con=engine)
+    print(df_failures)
+    # check we have some entries
+    assert df_failures.shape[0] > 0
+    # check we have both plate and well failures
+    # check that there are no plate and well column mix-ups
+    # can do this by checking that no well labels end with "000191"
+    for i in df_failures["well"].values:
+        assert not i.endswith("000191")
+    for i in df_failures["plate"].values:
+        assert i.endswith(("000191", "DILUTION SERIES"))
