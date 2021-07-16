@@ -136,7 +136,7 @@ class Plate:
                     well_names = "multiple wells (>8)"
                 failed_plate = failure.PlateFailure(
                     plate=self.barcode,
-                    well="multiple wells (>8)",
+                    well=well_names,
                     failure_reason=failure.DAPI_PLATE_FAILURE_REASON,
                 )
                 self.plate_failures.add(failed_plate)
