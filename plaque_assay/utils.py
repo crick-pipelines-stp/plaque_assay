@@ -7,6 +7,7 @@ import pandas as pd
 import sqlalchemy
 
 from .db_models import NE_available_strains
+from . import consts
 
 
 RESULT_TO_INT = {
@@ -292,3 +293,34 @@ def get_variant_from_plate_list(
             f"LIMS database: {prefixes}",
         )
     return return_val.mutant_strain
+
+
+def titration_pos_control_dilution(well) -> int:
+    """
+    Get dilution number from well label.
+    NOTE: this is not the virus dilution factor which is positioned in pairs
+          of columns, but the 4 dilutions within each dilution factor used
+          to contruct the concentration-response curve.
+
+               1 | 2
+             +-------+
+    H (even) | 4 | 2 |
+    -------- +---+---+
+    I (odd)  | 3 | 1 |
+             +---+---+
+    """
+    if well not in consts.TITRATION_POSITIVE_CONTROL_WELLS:
+        return None
+    row_int = ord(well[0]) - 64
+    col_int = int(well[1:])
+    # positive control rows as H and I
+    # as integers H = 8 = even
+    #             I = 9 = odd
+    if is_odd(row_int) and is_odd(col_int):
+        return 3
+    if is_odd(row_int) and is_even(col_int):
+        return 1
+    if is_even(row_int) and is_odd(col_int):
+        return 4
+    if is_even(row_int) and is_odd(col_int):
+        return 2

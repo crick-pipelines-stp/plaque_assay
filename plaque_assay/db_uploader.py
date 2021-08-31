@@ -24,7 +24,7 @@ class DatabaseUploader:
         """commit data to LIMS serology database"""
         self.session.commit()
 
-    def already_uploaded(self, workflow_id: int, variant: str) -> bool:
+    def already_uploaded(self, workflow_id: int, variant: str, titration: bool = False) -> bool:
         """
         Check if the results for a given workflow_id and variant
         have already been uploaded.
@@ -37,16 +37,21 @@ class DatabaseUploader:
         -----------
         workflow_id : int
         variant : str
+        titration: bool (default = False)
 
         Returns
         --------
         bool
         """
+        if titration:
+            table = db_models.NE_titration_results
+        else:
+            table = db_models.NE_final_results
         result = (
-            self.session.query(db_models.NE_final_results)
+            self.session.query(table)
             .filter(
-                db_models.NE_final_results.workflow_id == workflow_id,
-                db_models.NE_final_results.variant == variant,
+                table.workflow_id == workflow_id,
+                table.variant == variant,
             )
             .first()
         )
@@ -373,3 +378,18 @@ class DatabaseUploader:
             workflow_id=int(workflow_id), variant=variant, status="awaiting"
         )
         self.session.add(plate_entry)
+
+    def upload_titration_results(self, titration_results: pd.DataFrame) -> None:
+        """
+        Parameters
+        ----------
+        titration_results: pd.DataFrame
+
+        Returns
+        -------
+        None
+            Uploads results to the LIMS database.
+        """
+        # can't store NaNs
+        titration_results = titration_results.replace({np.nan: None})
+        raise NotImplementedError("not made this yet!")
