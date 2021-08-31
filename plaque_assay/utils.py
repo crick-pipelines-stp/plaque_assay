@@ -1,7 +1,7 @@
 import os
 import string
 import math
-from typing import List, Union
+from typing import List, Union, Optional
 
 import pandas as pd
 import sqlalchemy
@@ -295,7 +295,7 @@ def get_variant_from_plate_list(
     return return_val.mutant_strain
 
 
-def titration_pos_control_dilution(well) -> int:
+def titration_pos_control_dilution(well) -> Optional[int]:
     """
     Get dilution number from well label.
     NOTE: this is not the virus dilution factor which is positioned in pairs
@@ -324,3 +324,4 @@ def titration_pos_control_dilution(well) -> int:
         return 4
     if is_even(row_int) and is_odd(col_int):
         return 2
+    return None

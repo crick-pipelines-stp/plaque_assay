@@ -194,9 +194,11 @@ def read_titration_data_from_list(plate_list: List[str]) -> pd.DataFrame:
     # remove empty wells
     df_concat = df_concat[~df_concat["Well"].isin(consts.TITRATION_EMPTY_WELLS)]
     # sample dilutions (1-4)
-    dilution_int = [utils.titration_pos_control_dilution(well) for well in df_concat["Well"]]
+    dilution_int = [
+        utils.titration_pos_control_dilution(well) for well in df_concat["Well"]
+    ]
     # sample dilutions (40-2560)
-    sample_dilution = [consts.plate_mapping.get(i) for i in dilution_int]
+    sample_dilution = [consts.plate_mapping.get(i) if i else None for i in dilution_int]
     df_concat["Dilution"] = sample_dilution
     # virus dilution factors (2-64)
     virus_dilutions = []

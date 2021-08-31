@@ -18,7 +18,20 @@ UNWANTED_METADATA = [
     "Cell Count",
 ]
 
-TITRATION_VIRUS_ONLY_ROWS = ("A", "B", "C", "D", "E", "F", "G", "J", "K", "L", "M", "N",)
+TITRATION_VIRUS_ONLY_ROWS = (
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+)
 
 TITRATION_VIRUS_ONLY_WELLS = (
     f"{row}{col:02}" for row in TITRATION_VIRUS_ONLY_ROWS for col in range(1, 13)
@@ -53,6 +66,25 @@ TITRATION_COLUMN_DILUTION_MAPPING = {
 
 TITRATION_EMPTY_COLUMNS = list(range(13, 25))
 
-ALL_ROWS = ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P")
+ALL_ROWS = (
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+)
 
-TITRATION_EMPTY_WELLS = (f"{row}{col:02}" for row in ALL_ROWS for col in TITRATION_EMPTY_COLUMNS)
+TITRATION_EMPTY_WELLS = (
+    f"{row}{col:02}" for row in ALL_ROWS for col in TITRATION_EMPTY_COLUMNS
+)

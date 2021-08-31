@@ -107,9 +107,7 @@ good_but_wrong_ic50_for_pos_cntrl = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_wrong_ic50}
 )
 
-high_mse = pd.DataFrame(
-    {"Dilution": dilutions, "Percentage Infected": perc_high_mse}
-)
+high_mse = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_high_mse})
 
 
 def test_check_positive_control():
@@ -174,4 +172,3 @@ def test_check_for_high_mse():
     failure = list(sample.failures)[0]
     assert isinstance(failure, WellFailure)
     assert failure.failure_reason.startswith("model MSE")
-

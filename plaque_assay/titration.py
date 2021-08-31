@@ -36,7 +36,7 @@ class Titration:
         dict
             `{sample_name: Sample`}
         """
-        sample_dict = dict()
+        sample_dict: Dict[str, Sample] = dict()
         raise NotImplementedError()
         # TODO: loop through and generate a dataframe for each sample with two
         # columns ["Dilution", "Percentage Infected"]

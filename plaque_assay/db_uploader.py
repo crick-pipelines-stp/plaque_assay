@@ -24,7 +24,9 @@ class DatabaseUploader:
         """commit data to LIMS serology database"""
         self.session.commit()
 
-    def already_uploaded(self, workflow_id: int, variant: str, titration: bool = False) -> bool:
+    def already_uploaded(
+        self, workflow_id: int, variant: str, titration: bool = False
+    ) -> bool:
         """
         Check if the results for a given workflow_id and variant
         have already been uploaded.
@@ -44,15 +46,12 @@ class DatabaseUploader:
         bool
         """
         if titration:
-            table = db_models.NE_titration_results
+            table = db_models.NE_virus_titration_results
         else:
             table = db_models.NE_final_results
         result = (
             self.session.query(table)
-            .filter(
-                table.workflow_id == workflow_id,
-                table.variant == variant,
-            )
+            .filter(table.workflow_id == workflow_id, table.variant == variant,)
             .first()
         )
         return result is not None
