@@ -9,10 +9,19 @@ from plaque_assay.experiment import Experiment
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_DIR_191_ENG2 = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_191_Eng2"))
-TEST_DATA_DIR_228_DELTA = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_228_delta"))
-PLATE_LIST_191_ENG2 = [os.path.join(TEST_DATA_DIR_191_ENG2, i) for i in os.listdir(TEST_DATA_DIR_191_ENG2)]
-PLATE_LIST_228_DELTA = [os.path.join(TEST_DATA_DIR_228_DELTA, i) for i in os.listdir(TEST_DATA_DIR_228_DELTA)]
+TEST_DATA_DIR_191_ENG2 = os.path.abspath(
+    os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_191_Eng2")
+)
+TEST_DATA_DIR_228_DELTA = os.path.abspath(
+    os.path.join(CURRENT_DIR, "test_data", "NA_raw_data_228_delta")
+)
+PLATE_LIST_191_ENG2 = [
+    os.path.join(TEST_DATA_DIR_191_ENG2, i) for i in os.listdir(TEST_DATA_DIR_191_ENG2)
+]
+PLATE_LIST_228_DELTA = [
+    os.path.join(TEST_DATA_DIR_228_DELTA, i)
+    for i in os.listdir(TEST_DATA_DIR_228_DELTA)
+]
 
 
 def setup_module():
@@ -163,7 +172,7 @@ def test_failed_results_228():
     """
     query = session.query(db_models.NE_failed_results).filter(
         db_models.NE_failed_results.workflow_id == 228,
-        db_models.NE_failed_results.variant == "B.1.617.2 (India)"
+        db_models.NE_failed_results.variant == "B.1.617.2 (India)",
     )
     df_failures = pd.read_sql(query.statement, con=engine)
     # check we have some entries
@@ -185,7 +194,7 @@ def test_failed_results_191():
     """check that the failure table is as expected"""
     query = session.query(db_models.NE_failed_results).filter(
         db_models.NE_failed_results.workflow_id == 191,
-        db_models.NE_failed_results.variant == "England2"
+        db_models.NE_failed_results.variant == "England2",
     )
     df_failures = pd.read_sql(query.statement, con=engine)
     print(df_failures)

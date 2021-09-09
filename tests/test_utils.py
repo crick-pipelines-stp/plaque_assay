@@ -1,8 +1,39 @@
+import sqlalchemy
+
 from plaque_assay import utils
+from plaque_assay import db_models
 
 
 THRESHOLD = 50
 WEAK_THRESHOLD = 60
+
+VARIANT_ENGLAND = "England2"
+VARIANT_INDIA = "B.1.617.2 (India)"
+
+
+def setup_module():
+    """create in-memory sqlite Serology database for testing"""
+    global engine
+    global session
+    engine = sqlalchemy.create_engine("sqlite://")
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = Session()
+    # create tables from model definitions
+    db_models.Base.metadata.create_all(engine)
+    # add strains to testing database
+    variant_england2 = db_models.NE_available_strains(
+        mutant_strain="England2", plate_id_1="S01", plate_id_2="S02"
+    )
+    variant_delta = db_models.NE_available_strains(
+        mutant_strain="B.1.617.2 (India)", plate_id_1="S09", plate_id_2="S10"
+    )
+    session.add(variant_delta)
+    session.add(variant_england2)
+    session.commit()
+
+
+def teardown_module():
+    pass
 
 
 def test_col_to_well():
@@ -38,3 +69,54 @@ def test_get_prefix_from_full_path():
     assert utils.get_prefix_from_full_path(path) == "S01"
     path = "/path/to/plate/S12000001__2021_01_01T00_00_00-Measuremment 1"
     assert utils.get_prefix_from_full_path(path) == "S12"
+
+
+def test_get_variant_from_plate_list():
+    plate_list_analysis_england2 = [
+        "/mnt/NA_raw_data/S01000100__2021_01_01T01_01_01-Measurement 1",
+        "/mnt/NA_raw_data/S02000100__2021_01_01T01_01_01-Measurement 1",
+    ]
+    plate_list_analysis_india = [
+        "/mnt/NA_raw_data/S09000100__2021_01_01T01_01_01-Measurement 1",
+        "/mnt/NA_raw_data/S10000100__2021_01_01T01_01_01-Measurement 1",
+    ]
+    plate_list_titration_england2 = [
+        "/mnt/Titration_raw_data/T01000100__2021_01_01T01_01_01-Measurement 1",
+        "/mnt/Titration_raw_data/T02000100__2021_01_01T01_01_01-Measurement 1",
+    ]
+    plate_list_titration_inda = [
+        "/mnt/Titration_raw_data/T09000100__2021_01_01T01_01_01-Measurement 1",
+        "/mnt/Titration_raw_data/T10000100__2021_01_01T01_01_01-Measurement 1",
+    ]
+    variant_analysis_eng2 = utils.get_variant_from_plate_list(
+        plate_list_analysis_england2, session, titration=False
+    )
+    variant_analysis_india = utils.get_variant_from_plate_list(
+        plate_list_analysis_india, session, titration=False
+    )
+    variant_titration_eng2 = utils.get_variant_from_plate_list(
+        plate_list_titration_england2, session, titration=True
+    )
+    variant_titration_india = utils.get_variant_from_plate_list(
+        plate_list_titration_inda, session, titration=True
+    )
+    #
+    assert variant_analysis_eng2 == VARIANT_ENGLAND
+    assert variant_analysis_india == VARIANT_INDIA
+    assert variant_titration_eng2 == VARIANT_ENGLAND
+    assert variant_titration_india == VARIANT_INDIA
+
+
+def test_titration_pos_control_dilution():
+    examples = [
+        ("H01", 4),
+        ("I01", 3),
+        ("H02", 2),
+        ("I02", 1),
+        ("H03", 4),
+        ("I04", 1),
+        ("A01", None),
+        ("H13", None),
+    ]
+    for input, expected_output in examples:
+        assert utils.titration_pos_control_dilution(input) == expected_output

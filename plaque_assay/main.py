@@ -1,5 +1,6 @@
 """
-Main `run()` function to launch the analysis.
+Main `run()` function to launch the analysis and `run_titration()` for
+the titration analysis.
 """
 
 
@@ -9,6 +10,7 @@ from typing import List
 import sqlalchemy
 
 from plaque_assay.experiment import Experiment
+from plaque_assay.titration import Titration
 from plaque_assay.errors import AlreadyUploadedError, DatabaseCredentialError
 from . import ingest
 from . import db_uploader
@@ -115,4 +117,46 @@ def run(plate_list: List[str]) -> None:
     lims_db.upload_reporter_plate_status(workflow_id, variant)
     if lims_db.is_final_upload(workflow_id):
         lims_db.update_workflow_tracking(workflow_id)
+    lims_db.commit()
+
+
+def run_titration(plate_list: List[str]) -> None:
+    """Run titration analysis.
+
+    This runs the titration analysis on a pair of plates, given that the 2
+    plates are replicates for a single workflow_id and variant. The results
+    will upload the results in the LIMS database.
+
+    Parameters
+    ------------
+    plate_list : list
+        List of paths to the plate directories to analyse. This will be 2 plates
+        for the 2 replicates for a single workflow and variant. These plates'
+        barcodes should start with "T".
+
+    Returns
+    ----------
+    None
+
+    Raises
+    -------
+    AlreadyUploadedError
+        This exception is raised if the given workflow and variant
+        are already present in the LIMS serology database.
+    """
+    engine = create_engine(test=False)
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = Session()
+    lims_db = db_uploader.DatabaseUploader(session)
+    titration_dataframe = ingest.read_titration_data_from_list(plate_list)
+    variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
+    titration = Titration(titration_dataframe, variant=variant)
+    workflow_id = titration.workflow_id
+    if lims_db.already_uploaded(workflow_id, variant, titration=True):
+        raise AlreadyUploadedError(
+            f"(titration) workflow_id:{workflow_id} variant:{variant} already have results in the database"
+        )
+    titration_results = titration.get_titration_results()
+    lims_db.upload_titration_results(titration_results)
+    lims_db.update_titration_workflow_tracking(workflow_id, variant)
     lims_db.commit()

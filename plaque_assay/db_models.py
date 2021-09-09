@@ -183,3 +183,29 @@ class NE_reporter_plate_status(Base):
     reporter = sql.Column(sql.String(45))
     updated_at = sql.Column(sql.TIMESTAMP)
     reason = sql.Column(sql.TEXT)
+
+
+class NE_virus_titration_results(Base):
+    __tablename__ = "NE_virus_titration_results"
+    id = sql.Column(sql.Integer, primary_key=True)
+    dilution = sql.Column(sql.Integer, nullable=False)
+    ic50 = sql.Column(sql.DECIMAL(30, 15))
+    status = sql.Column(sql.String(45))
+    mean_squared_error = sql.Column(sql.DECIMAL(20, 15))
+    median_virus_only_plaque_area = sql.Column(sql.DECIMAL(20, 15))
+    variant = sql.Column(sql.String(45), nullable=False)
+    workflow_id = sql.Column(sql.Integer, nullable=False)
+
+
+class NE_titration_workflow_tracking(Base):
+    __tablename__ = "NE_titration_workflow_tracking"
+    id = sql.Column(sql.Integer, primary_key=True)
+    variant = sql.Column(sql.String(45))
+    plate_1 = sql.Column(sql.String(45))
+    plate_2 = sql.Column(sql.String(45))
+    virus_batch_no = sql.Column(sql.String(45))
+    start_date = sql.Column(sql.TIMESTAMP, nullable=False)
+    end_date = sql.Column(sql.TIMESTAMP)
+    complete_operator = sql.Column(sql.String(45))
+    status = sql.Column(sql.String(45))
+    workflow_id = sql.Column(sql.Integer, nullable=False)

@@ -27,7 +27,9 @@ def test_experiment_failures_as_dataframe():
         well_failures = failures_df[failures_df["failure_type"] == "well_failure"]
         assert well_failures.shape[0] > 0
         # check we've picked up the sample errors
-        mse_failures = well_failures[well_failures["failure_reason"].str.startswith("model MSE")]
+        mse_failures = well_failures[
+            well_failures["failure_reason"].str.startswith("model MSE")
+        ]
         assert mse_failures.shape[0] > 0
         # check we've got plate failures
         plate_failures = failures_df[failures_df["failure_type"] == "plate_failure"]

@@ -13,3 +13,9 @@ class DatabaseCredentialError(Exception):
     """Missing or invalid database credentials"""
 
     pass
+
+
+class VariantLookupError(Exception):
+    """unrecoginised variant"""
+
+    pass

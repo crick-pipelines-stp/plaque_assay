@@ -1,12 +1,14 @@
 import os
 import string
 import math
-from typing import List, Union
+from typing import List, Union, Optional
 
 import pandas as pd
 import sqlalchemy
 
 from .db_models import NE_available_strains
+from .errors import VariantLookupError
+from . import consts
 
 
 RESULT_TO_INT = {
@@ -246,7 +248,7 @@ def get_prefix_from_full_path(full_path: str) -> str:
 
 
 def get_variant_from_plate_list(
-    plate_list: List, session: sqlalchemy.orm.Session
+    plate_list: List, session: sqlalchemy.orm.Session, titration: bool = False
 ) -> str:
     """
     Fetch variant name from the LIMS database.
@@ -268,13 +270,18 @@ def get_variant_from_plate_list(
 
     Raises
     -------
-    RuntimeError
+    plaque_assay.errors.VariantError
         if plate barcode prefixes to not mach any known variant
         in the LIMS serology database
     """
     # get both prefixes from the plate_list
     assert len(plate_list) == 2, "expected plate_list to have 2 paths"
     prefixes = [get_prefix_from_full_path(i) for i in plate_list]
+    if titration:
+        # titration plates start with T rather than S
+        # swap T for S at beginning i.e "T01" -> "S01"
+        # so they match those in NE_available_strains
+        prefixes = [i.replace("T", "S") for i in prefixes]
     prefix_1, prefix_2 = sorted(prefixes)
     # query table to return variant name (mutant_strain) for entry matching
     # both the plate barcode prefixes
@@ -287,8 +294,40 @@ def get_variant_from_plate_list(
         .first()
     )
     if len(return_val) != 1:
-        raise RuntimeError(
+        raise VariantLookupError(
             "plate barcode prefixes do not match any known variants in the ",
             f"LIMS database: {prefixes}",
         )
     return return_val.mutant_strain
+
+
+def titration_pos_control_dilution(well) -> Optional[int]:
+    """
+    Get dilution number from well label.
+    NOTE: this is not the virus dilution factor which is positioned in pairs
+          of columns, but the 4 dilutions within each dilution factor used
+          to contruct the concentration-response curve.
+
+               1 | 2
+             +-------+
+    H (even) | 4 | 2 |
+    -------- +---+---+
+    I (odd)  | 3 | 1 |
+             +---+---+
+    """
+    if well not in consts.TITRATION_POSITIVE_CONTROL_WELLS:
+        return None
+    row_int = ord(well[0]) - 64
+    col_int = int(well[1:])
+    # positive control rows as H and I
+    # as integers H = 8 = even
+    #             I = 9 = odd
+    if is_odd(row_int) and is_odd(col_int):
+        return 3
+    if is_odd(row_int) and is_even(col_int):
+        return 1
+    if is_even(row_int) and is_odd(col_int):
+        return 4
+    if is_even(row_int) and is_even(col_int):
+        return 2
+    return None
