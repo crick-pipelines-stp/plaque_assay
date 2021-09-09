@@ -391,7 +391,7 @@ class DatabaseUploader:
         """
         # can't store NaNs
         titration_results = titration_results.replace({np.nan: None})
-        self.session.build_insert_mappings(
+        self.session.bulk_insert_mappings(
             db_models.NE_virus_titration_results,
             titration_results.to_dict(orient="records"),
         )

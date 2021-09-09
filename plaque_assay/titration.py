@@ -25,11 +25,8 @@ class Titration:
         self.variant = variant
         self.workflow_id = self.dataset["Plate_barcode"].values[0][3:]
         dilution_store = dict()
-        for name, df in titration_dataset.groupby(
-            ["Plate_barcode", "Virus_dilution_factor"]
-        ):
-            dilution_name = "_".join(name)
-            dilution_store[dilution_name] = TitrationDilution(df)
+        for dilution, df in titration_dataset.groupby("Virus_dilution_factor"):
+            dilution_store[dilution] = TitrationDilution(df)
         self.dilution_store = dilution_store
         self.df = pd.concat([dilution.df for dilution in self.dilution_store.values()])
         self.sample_store = self.make_samples()
@@ -49,10 +46,9 @@ class Titration:
             `{sample_name: Sample`}
         """
         sample_dict: Dict[str, Sample] = dict()
-        for name, group in self.df.groupby(["Plate_barcode", "Virus_dilution_factor"]):
-            dilution_name = "_".join(name)
-            sample_df = group["Dilution", "Percentage Infected"]
-            sample_dict[dilution_name] = Sample(dilution_name, sample_df, self.variant)
+        for dilution, group in self.df.groupby("Virus_dilution_factor"):
+            sample_df = group[["Dilution", "Percentage Infected"]]
+            sample_dict[dilution] = Sample(str(dilution), sample_df, self.variant)
         return sample_dict
 
     def get_titration_results(self) -> pd.DataFrame:
@@ -72,15 +68,16 @@ class Titration:
         -------
         pd.DataFrame
         """
-        dilutions: List[str] = []
+        dilutions: List[int] = []
         ic50s: List[Optional[float]] = []
         statuses: List[Optional[str]] = []
         mean_squared_errors: List[Optional[float]] = []
         infection_rates: List[float] = []
-        for dilution_name, dilution_sample in self.samples:
-            dilutions.append(dilution_name)
-            titration_dilution_object = self.dilution_store[dilution_name]
+        for dilution, dilution_sample in self.samples:
+            dilutions.append(dilution)
+            titration_dilution_object = self.dilution_store[dilution]
             infection_rate = titration_dilution_object.infection_rate
+            print(infection_rate)
             infection_rates.append(infection_rate)
             mean_squared_errors.append(dilution_sample.mean_squared_error)
             if dilution_sample.ic50 < 0:
@@ -98,7 +95,7 @@ class Titration:
                 "ic50": ic50s,
                 "status": statuses,
                 "mean_squared_error": mean_squared_errors,
-                "median_virus_only_infection_rate": infection_rates,
+                "median_virus_only_plaque_area": infection_rates,
             }
         )
         results_df["variant"] = self.variant

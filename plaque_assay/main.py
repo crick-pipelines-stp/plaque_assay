@@ -150,7 +150,7 @@ def run_titration(plate_list: List[str]) -> None:
     lims_db = db_uploader.DatabaseUploader(session)
     titration_dataframe = ingest.read_titration_data_from_list(plate_list)
     variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
-    titration = Titration(titration_dataframe, variant)
+    titration = Titration(titration_dataframe, variant=variant)
     workflow_id = titration.workflow_id
     if lims_db.already_uploaded(workflow_id, variant, titration=True):
         raise AlreadyUploadedError(

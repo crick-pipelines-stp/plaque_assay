@@ -15,7 +15,7 @@ class DatabaseCredentialError(Exception):
     pass
 
 
-class VariantError(Exception):
+class VariantLookupError(Exception):
     """unrecoginised variant"""
 
     pass

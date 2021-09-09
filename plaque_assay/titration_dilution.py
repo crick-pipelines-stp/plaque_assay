@@ -21,6 +21,7 @@ class TitrationDilution:
     def __init__(self, df: pd.DataFrame):
         assert df["Virus_dilution_factor"].nunique() == 1, "more than 1 dilution factor present"
         self.df = df
+        self.df_background_subtracted = self.subtract_plaque_area_background(df)
         self.dilution = df["Dilution"].values[0]
         self.calc_percentage_infected()
 
@@ -36,8 +37,8 @@ class TitrationDilution:
         to the infection rate.
         """
         feature = "Background Subtracted Plaque Area"
-        virus_only_bool = self.df.Well.isin(consts.TITRATION_VIRUS_ONLY_WELLS)
-        return self.df[virus_only_bool][feature].median()
+        virus_only_bool = self.df_background_subtracted.Well.isin(consts.TITRATION_VIRUS_ONLY_WELLS)
+        return self.df_background_subtracted[virus_only_bool][feature].median()
 
     def subtract_plaque_area_background(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove background from `plaque_area`.
@@ -74,6 +75,6 @@ class TitrationDilution:
         """
         feature = "Background Subtracted Plaque Area"
         infection_rate = self.median_virus_only_plaque_area
-        self.df["Percentage Infected"] = self.df[feature] / infection_rate * 100
+        self.df["Percentage Infected"] = self.df_background_subtracted[feature] / infection_rate * 100
 
 

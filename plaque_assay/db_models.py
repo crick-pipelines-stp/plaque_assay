@@ -188,6 +188,7 @@ class NE_reporter_plate_status(Base):
 class NE_virus_titration_results(Base):
     __tablename__ = "NE_virus_titration_results"
     id = sql.Column(sql.Integer, primary_key=True)
+    dilution = sql.Column(sql.Integer, nullable=False)
     ic50 = sql.Column(sql.DECIMAL(30, 15))
     status = sql.Column(sql.String(45))
     mean_squared_error = sql.Column(sql.DECIMAL(20, 15))

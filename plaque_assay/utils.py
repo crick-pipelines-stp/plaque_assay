@@ -7,7 +7,7 @@ import pandas as pd
 import sqlalchemy
 
 from .db_models import NE_available_strains
-from .errors import VariantError
+from .errors import VariantLookupError
 from . import consts
 
 
@@ -294,7 +294,7 @@ def get_variant_from_plate_list(
         .first()
     )
     if len(return_val) != 1:
-        raise VariantError(
+        raise VariantLookupError(
             "plate barcode prefixes do not match any known variants in the ",
             f"LIMS database: {prefixes}",
         )
@@ -328,6 +328,6 @@ def titration_pos_control_dilution(well) -> Optional[int]:
         return 1
     if is_even(row_int) and is_odd(col_int):
         return 4
-    if is_even(row_int) and is_odd(col_int):
+    if is_even(row_int) and is_even(col_int):
         return 2
     return None
