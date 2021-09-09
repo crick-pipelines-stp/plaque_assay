@@ -3,11 +3,13 @@ Titration class is similar to the Experiment class but used
 with titration plates.
 """
 
-from typing import Dict
+from typing import Dict, List, Optional
 
 import pandas as pd
 
 from .sample import Sample
+from .titration_dilution import TitrationDilution
+from . import utils
 
 
 class Titration:
@@ -18,8 +20,18 @@ class Titration:
     titration_dataset: pd.DataFrame
     """
 
-    def __init__(self, titration_dataset: pd.DataFrame):
+    def __init__(self, titration_dataset: pd.DataFrame, variant: str):
         self.dataset = titration_dataset
+        self.variant = variant
+        self.workflow_id = self.dataset["Plate_barcode"].values[0][3:]
+        dilution_store = dict()
+        for name, df in titration_dataset.groupby(
+            ["Plate_barcode", "Virus_dilution_factor"]
+        ):
+            dilution_name = "_".join(name)
+            dilution_store[dilution_name] = TitrationDilution(df)
+        self.dilution_store = dilution_store
+        self.df = pd.concat([dilution.df for dilution in self.dilution_store.values()])
         self.sample_store = self.make_samples()
 
     @property
@@ -37,15 +49,20 @@ class Titration:
             `{sample_name: Sample`}
         """
         sample_dict: Dict[str, Sample] = dict()
-        raise NotImplementedError()
-        # TODO: loop through and generate a dataframe for each sample with two
-        # columns ["Dilution", "Percentage Infected"]
+        for name, group in self.df.groupby(["Plate_barcode", "Virus_dilution_factor"]):
+            dilution_name = "_".join(name)
+            sample_df = group["Dilution", "Percentage Infected"]
+            sample_dict[dilution_name] = Sample(dilution_name, sample_df, self.variant)
         return sample_dict
 
     def get_titration_results(self) -> pd.DataFrame:
         """
         return dataframe of titration results suitable for uploading to
-        the LIMS database.
+        the LIMS database. e.g:
+        +----------+------+--------+--------------------+-------------------------------+---------+-------------+
+        | dilution | ic50 | status | mean_squared_error | median_virus_only_plaque_area | variant | workflow_id |
+        +----------+------+--------+--------------------+-------------------------------+---------+-------------+
+        |          |      |        |                    |                               |         |             |
 
         Arguments
         ---------
@@ -55,16 +72,35 @@ class Titration:
         -------
         pd.DataFrame
         """
-        raise NotImplementedError()
-
-    @property
-    def workflow_id(self):
-        """get workflow_id from self.dataset"""
-        raise NotImplementedError()
-        pass
-
-    @property
-    def variant(self):
-        """get variant name from self.dataset"""
-        raise NotImplementedError()
-        pass
+        dilutions: List[str] = []
+        ic50s: List[Optional[float]] = []
+        statuses: List[Optional[str]] = []
+        mean_squared_errors: List[Optional[float]] = []
+        infection_rates: List[float] = []
+        for dilution_name, dilution_sample in self.samples:
+            dilutions.append(dilution_name)
+            titration_dilution_object = self.dilution_store[dilution_name]
+            infection_rate = titration_dilution_object.infection_rate
+            infection_rates.append(infection_rate)
+            mean_squared_errors.append(dilution_sample.mean_squared_error)
+            if dilution_sample.ic50 < 0:
+                # is an error code
+                ic50s.append(None)
+                status_str = utils.int_to_result(dilution_sample.ic50)
+                statuses.append(status_str)
+            else:
+                # is a valid ic50 value
+                ic50s.append(dilution_sample.ic50)
+                statuses.append(None)
+        results_df = pd.DataFrame(
+            {
+                "dilution": dilutions,
+                "ic50": ic50s,
+                "status": statuses,
+                "mean_squared_error": mean_squared_errors,
+                "median_virus_only_infection_rate": infection_rates,
+            }
+        )
+        results_df["variant"] = self.variant
+        results_df["workflow_id"] = self.workflow_id
+        return results_df

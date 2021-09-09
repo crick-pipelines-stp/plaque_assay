@@ -7,6 +7,7 @@ import pandas as pd
 import sqlalchemy
 
 from .db_models import NE_available_strains
+from .errors import VariantError
 from . import consts
 
 
@@ -247,7 +248,7 @@ def get_prefix_from_full_path(full_path: str) -> str:
 
 
 def get_variant_from_plate_list(
-    plate_list: List, session: sqlalchemy.orm.Session
+    plate_list: List, session: sqlalchemy.orm.Session, titration: bool = False
 ) -> str:
     """
     Fetch variant name from the LIMS database.
@@ -269,13 +270,18 @@ def get_variant_from_plate_list(
 
     Raises
     -------
-    RuntimeError
+    plaque_assay.errors.VariantError
         if plate barcode prefixes to not mach any known variant
         in the LIMS serology database
     """
     # get both prefixes from the plate_list
     assert len(plate_list) == 2, "expected plate_list to have 2 paths"
     prefixes = [get_prefix_from_full_path(i) for i in plate_list]
+    if titration:
+        # titration plates start with T rather than S
+        # swap T for S at beginning i.e "T01" -> "S01"
+        # so they match those in NE_available_strains
+        prefixes = [i.replace("T", "S") for i in prefixes]
     prefix_1, prefix_2 = sorted(prefixes)
     # query table to return variant name (mutant_strain) for entry matching
     # both the plate barcode prefixes
@@ -288,7 +294,7 @@ def get_variant_from_plate_list(
         .first()
     )
     if len(return_val) != 1:
-        raise RuntimeError(
+        raise VariantError(
             "plate barcode prefixes do not match any known variants in the ",
             f"LIMS database: {prefixes}",
         )

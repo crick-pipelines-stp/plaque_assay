@@ -13,3 +13,9 @@ class DatabaseCredentialError(Exception):
     """Missing or invalid database credentials"""
 
     pass
+
+
+class VariantError(Exception):
+    """unrecoginised variant"""
+
+    pass

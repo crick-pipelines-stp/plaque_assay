@@ -391,4 +391,32 @@ class DatabaseUploader:
         """
         # can't store NaNs
         titration_results = titration_results.replace({np.nan: None})
-        raise NotImplementedError("not made this yet!")
+        self.session.build_insert_mappings(
+            db_models.NE_virus_titration_results,
+            titration_results.to_dict(orient="records"),
+        )
+
+    def update_titration_workflow_tracking(self, workflow_id: int, variant: str):
+        """Update NE_titration_workflow_tracking table to indicate the
+        titration has been uploaded.
+
+        Parameters
+        ----------
+        workflow_id: int
+        variant: str
+        """
+        timestamp = datetime.now(timezone.utc)
+        # fmt: off
+        self.session\
+            .query(db_models.NE_titration_workflow_tracking)\
+            .filter(
+                db_models.NE_titration_workflow_tracking.workflow_id == workflow_id,
+                db_models.NE_titration_workflow_tracking.variant == variant
+            )\
+            .update(
+                {
+                    db_models.NE_titration_workflow_tracking.status: "complete",
+                    db_models.NE_titration_workflow_tracking.end_date: timestamp
+                }
+            )
+        # fmt: on
