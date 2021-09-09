@@ -61,19 +61,18 @@ def run_titration_pipeline(plate_list):
     lims_db.commit()
 
 
-def test():
+def test_titration_pipeline():
     query_results = (
         session
         .query(db_models.NE_virus_titration_results)
         .filter(db_models.NE_virus_titration_results.variant == "England2")
     )
     df = pd.read_sql(query_results.statement, con=session.bind)
-    df.to_csv("/home/warchas/titration_results.csv", index=False)
+    assert df.shape[0] > 0
     query_tracking = (
         session
         .query(db_models.NE_titration_workflow_tracking)
         .filter(db_models.NE_titration_workflow_tracking.variant == "England2")
     )
     df_tracking = pd.read_sql(query_tracking.statement, con=session.bind)
-    print(df_tracking)
-    assert False
+    assert df_tracking["status"].values[0] == "complete"
