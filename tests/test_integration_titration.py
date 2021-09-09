@@ -4,7 +4,6 @@ import datetime
 import pandas as pd
 import sqlalchemy
 
-from plaque_assay.db_uploader import DatabaseUploader
 from plaque_assay import ingest, db_models, utils, db_uploader
 from plaque_assay.titration import Titration
 
@@ -38,7 +37,7 @@ def setup_module():
         start_date=datetime.datetime.utcnow() - datetime.timedelta(days=1),
         complete_operator="test operator",
         status="results",
-        workflow_id=1
+        workflow_id=1,
     )
     session.add(workflow_1)
     session.commit()
@@ -62,17 +61,13 @@ def run_titration_pipeline(plate_list):
 
 
 def test_titration_pipeline():
-    query_results = (
-        session
-        .query(db_models.NE_virus_titration_results)
-        .filter(db_models.NE_virus_titration_results.variant == "England2")
+    query_results = session.query(db_models.NE_virus_titration_results).filter(
+        db_models.NE_virus_titration_results.variant == "England2"
     )
     df = pd.read_sql(query_results.statement, con=session.bind)
     assert df.shape[0] > 0
-    query_tracking = (
-        session
-        .query(db_models.NE_titration_workflow_tracking)
-        .filter(db_models.NE_titration_workflow_tracking.variant == "England2")
+    query_tracking = session.query(db_models.NE_titration_workflow_tracking).filter(
+        db_models.NE_titration_workflow_tracking.variant == "England2"
     )
     df_tracking = pd.read_sql(query_tracking.statement, con=session.bind)
     assert df_tracking["status"].values[0] == "complete"

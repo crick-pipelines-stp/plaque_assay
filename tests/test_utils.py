@@ -1,7 +1,7 @@
 import sqlalchemy
 
 from plaque_assay import utils
-from plaque_assay import db_models, consts
+from plaque_assay import db_models
 
 
 THRESHOLD = 50
