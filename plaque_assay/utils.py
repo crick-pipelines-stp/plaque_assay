@@ -310,24 +310,24 @@ def titration_pos_control_dilution(well) -> Optional[int]:
 
                1 | 2
              +-------+
-    H (even) | 4 | 2 |
+    G (odd)  | 4 | 2 |
     -------- +---+---+
-    I (odd)  | 3 | 1 |
+    H (even) | 3 | 1 |
              +---+---+
     """
     if well not in consts.TITRATION_POSITIVE_CONTROL_WELLS:
         return None
-    row_int = ord(well[0]) - 64
+    row_int = ord(well[0]) - 64  # 1 indexed
     col_int = int(well[1:])
-    # positive control rows as H and I
-    # as integers H = 8 = even
-    #             I = 9 = odd
+    # positive control rows as G and H
+    # as integers G = 7 = even
+    #             H = 8 = odd
     if is_odd(row_int) and is_odd(col_int):
+        return 4
+    if is_even(row_int) and is_odd(col_int):
         return 3
     if is_odd(row_int) and is_even(col_int):
-        return 1
-    if is_even(row_int) and is_odd(col_int):
-        return 4
-    if is_even(row_int) and is_even(col_int):
         return 2
+    if is_even(row_int) and is_even(col_int):
+        return 1
     return None
