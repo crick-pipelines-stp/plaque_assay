@@ -109,12 +109,12 @@ def test_get_variant_from_plate_list():
 
 def test_titration_pos_control_dilution():
     examples = [
-        ("H01", 4),
-        ("I01", 3),
-        ("H02", 2),
-        ("I02", 1),
-        ("H03", 4),
-        ("I04", 1),
+        ("G01", 4),
+        ("H01", 3),
+        ("G02", 2),
+        ("H02", 1),
+        ("G03", 4),
+        ("H04", 1),
         ("A01", None),
         ("H13", None),
     ]
