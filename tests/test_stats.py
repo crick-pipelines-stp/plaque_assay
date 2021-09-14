@@ -7,6 +7,11 @@ import pandas as pd
 THRESHOLD = 50
 WEAK_THRESHOLD = 60
 
+# acceptable difference between expected and observed IC50 values
+EPSILON = 50
+# maximum mean_squared_error value expected for fitted model
+MSE_PASS = 100
+
 
 dilutions = [
     0.000391,
@@ -62,6 +67,53 @@ perc_good = [
     13.988952,
 ]
 
+# percentage infected values for an IC50 of ~391
+perc_391 = [
+    104.163,
+    91.075,
+    78.954,
+    77.688,
+    8.487,
+    8.092,
+    3.657,
+    -0.475,
+]
+
+# percentage infected values for an IC50 of ~184
+perc_184 = [
+    120.524,
+    118.954,
+    123.209,
+    119.373,
+    20.256,
+    14.863,
+    0.540,
+    -0.412,
+]
+
+# percentage infected values for an IC50 of ~381
+perc_381 = [
+    94.035,
+    84.759,
+    76.207,
+    76.039,
+    9.250,
+    7.387,
+    -0.079,
+    -0.354,
+]
+
+# percentage infected values for an IC50 of ~47
+perc_47 = [
+    119.075,
+    114.617,
+    138.538,
+    111.016,
+    116.646,
+    95.939,
+    46.947,
+    34.030,
+]
 
 df_good_inhibition = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_good}
@@ -86,14 +138,62 @@ def test_calc_heuristics_dilutions():
 
 
 def test_calc_model_results():
+    expected_ic50 = 150
     fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
         name="test",
         df=df_good_inhibition,
         threshold=THRESHOLD,
         weak_threshold=WEAK_THRESHOLD,
     )
-    expected_ic50 = 150
     assert fit_method == "model fit"
-    assert abs(result - expected_ic50) < 50
-    assert mean_squared_error < 100
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_391():
+    expected_ic50 = 391
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_391})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_184():
+    expected_ic50 = 184
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_184})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_381():
+    expected_ic50 = 381
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_381})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_47():
+    expected_ic50 = 47
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_47})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
     assert isinstance(model_params, stats.ModelParams)

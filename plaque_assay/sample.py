@@ -239,25 +239,16 @@ class Sample:
             10000,
         )
         if self.model_params is not None:
-            x_min = self.data["Dilution"].min()
-            x_max = self.data["Dilution"].max()
             curve = stats.dr_4(x, *self.model_params)
             plt.plot(1 / x, curve, linestyle="--", label="4 param dose-response")
             plt.legend(loc="upper left")
             try:
-                intersect = stats.find_intersect_on_curve(x_min, x_max, curve)
+                intersect = stats.find_y_intercept(*self.model_params)
                 if intersect:
                     plt.plot(
-                        1.0 / intersect.x,
-                        intersect.y,
-                        marker="P",
-                        color="black",
-                        zorder=999,
+                        1.0 / intersect, 50, marker="P", color="black", zorder=999,
                     )
             except RuntimeError:
-                # caused by stats.find_intersect_on_curve finding more than
-                # 1 intersect point, so a model fit failure anyway, so dont
-                # plot the curve
                 pass
         plt.xscale("log")
         plt.grid(linestyle=":")
