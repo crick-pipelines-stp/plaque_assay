@@ -8,7 +8,7 @@ THRESHOLD = 50
 WEAK_THRESHOLD = 60
 
 # acceptable difference between expected and observed IC50 values
-EPSILON = 50
+EPSILON = 30
 # maximum mean_squared_error value expected for fitted model
 MSE_PASS = 100
 

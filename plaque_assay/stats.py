@@ -110,7 +110,7 @@ def find_y_intercept(
     NOTE: top and bottom parameters are named incorrectly on purpose
     to mirror the incorrectly named database columns.
     """
-    return ec50 * (((bottom - top) / (y - top)) - 1 ** (1 / hillslope))
+    return ec50 * (((bottom - top) / (y - top)) - 1) ** (1 / hillslope)
 
 
 def non_linear_model(x: Numeric, y: Numeric, func: Callable = dr_4) -> ModelParams:
