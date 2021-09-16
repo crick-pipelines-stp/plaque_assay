@@ -18,6 +18,7 @@ Numeric = Union[int, float]
 class Intersect(NamedTuple):
     x: Numeric
     y: Numeric
+    error: bool
 
 
 class ModelParams(NamedTuple):
@@ -78,7 +79,7 @@ def dr_4(
 
 def intersect_between_curves(
     x_min: Numeric, x_max: Numeric, curve: np.array, intersect: Numeric = 50
-) -> (Intersect, bool):
+) -> Intersect:
     """Find intersect of two curves.
     Really hacky way of finding intersect of two curves,
     used for QC purposes.
@@ -91,7 +92,7 @@ def intersect_between_curves(
     intersect : numeric
     Returns
     --------
-    (Intersect, error: bool)
+    Intersect
     """
     x = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     line = np.full(x.shape, intersect)
@@ -104,14 +105,14 @@ def intersect_between_curves(
     else:
         try:
             idx = int(idx_arr)
-            x_intersect = x[idx]
-            y_intersect = curve[idx]
+            x_intersect = float(x[idx])
+            y_intersect = float(curve[idx])
         except (IndexError, ValueError):
             x_intersect = np.nan
             y_intersect = np.nan
             error = True
-        intersect = Intersect(x_intersect, y_intersect)
-    return (intersect, error)
+    result = Intersect(x_intersect, y_intersect, error)
+    return result
 
 
 def find_y_intercept(
@@ -334,8 +335,8 @@ def calc_model_results(
             if curve_heuristics is not None:
                 result = curve_heuristics
             else:
-                intersect, error = intersect_between_curves(x_min, x_max, y_fitted)
-                if error:
+                intersect = intersect_between_curves(x_min, x_max, y_fitted)
+                if intersect.error:
                     logging.error("error caused when finding intersect at y=50")
                     result = utils.result_to_int("failed to fit model")
                     model_params = None
