@@ -15,6 +15,12 @@ from . import utils
 Numeric = Union[int, float]
 
 
+class Intersect(NamedTuple):
+    x: Numeric
+    y: Numeric
+    error: bool
+
+
 class ModelParams(NamedTuple):
     top: float
     bottom: float
@@ -71,9 +77,9 @@ def dr_4(
         return (bottom - top) / (1 + (x / ec50) ** hill_slope)
 
 
-def curve_error(
+def intersect_between_curves(
     x_min: Numeric, x_max: Numeric, curve: np.array, intersect: Numeric = 50
-):
+) -> Intersect:
     """Find intersect of two curves.
     Really hacky way of finding intersect of two curves,
     used for QC purposes.
@@ -86,18 +92,27 @@ def curve_error(
     intersect : numeric
     Returns
     --------
-    ????
+    Intersect
     """
     x = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     line = np.full(x.shape, intersect)
-    idx = np.argwhere(np.diff(np.sign(line - curve))).flatten()
-    if len(idx) != 1:
-        return True
-    try:
-        _ = idx[0]
-    except (IndexError, ValueError):
-        return True
-    return False
+    idx_arr = np.argwhere(np.diff(np.sign(line - curve))).flatten()
+    error = False
+    if len(idx_arr) != 1:
+        error = True
+        x_intersect = np.nan
+        y_intersect = np.nan
+    else:
+        try:
+            idx = int(idx_arr)
+            x_intersect = float(x[idx])
+            y_intersect = float(curve[idx])
+        except (IndexError, ValueError):
+            x_intersect = np.nan
+            y_intersect = np.nan
+            error = True
+    result = Intersect(x_intersect, y_intersect, error)
+    return result
 
 
 def find_y_intercept(
@@ -108,9 +123,9 @@ def find_y_intercept(
 
     Used to find the dilution where percentage infection is 50%.
     NOTE: top and bottom parameters are named incorrectly on purpose
-    to mirror the incorrectly named database columns.
+    to mirror the incorrectly named database columns
     """
-    return ec50 * (((bottom - top) / (y - top)) - 1 ** (1 / hillslope))
+    return ec50 * (((bottom - top) / (y - top)) - 1.0) ** (1.0 / hillslope)
 
 
 def non_linear_model(x: Numeric, y: Numeric, func: Callable = dr_4) -> ModelParams:
@@ -320,21 +335,20 @@ def calc_model_results(
             if curve_heuristics is not None:
                 result = curve_heuristics
             else:
-                try:
-                    result = 1.0 / find_y_intercept(*model_params)
-                    if result < 1 / x.max():
+                intersect = intersect_between_curves(x_min, x_max, y_fitted)
+                if intersect.error:
+                    logging.error("error caused when finding intersect at y=50")
+                    result = utils.result_to_int("failed to fit model")
+                    model_params = None
+                else:
+                    result = 1.0 / intersect.x
+                    if result < 1.0 / x.max():
                         logging.info(
                             "%s IC50 of %s less than lowest dilution, weak inhibition",
                             name,
                             result,
                         )
                         result = utils.result_to_int("weak inhibition")
-                except (IndexError, RuntimeError, ValueError) as err:
-                    logging.error("during model fitting: %s", err)
-                    result = utils.result_to_int("failed to fit model")
-                if curve_error(x_min, x_max, y_fitted):
-                    logging.error("error caused when finding intersect at y=50")
-                    result = utils.result_to_int("failed to fit model")
     logging.debug("well %s fitted with method %s", name, fit_method)
     return ModelResults(fit_method, result, model_params, mean_squared_error)
 
