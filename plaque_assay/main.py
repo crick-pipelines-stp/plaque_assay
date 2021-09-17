@@ -11,7 +11,7 @@ import sqlalchemy
 
 from plaque_assay.experiment import Experiment
 from plaque_assay.titration import Titration
-from plaque_assay.errors import AlreadyUploadedError, DatabaseCredentialError
+from plaque_assay.errors import DatabaseCredentialError
 from . import ingest
 from . import db_uploader
 from . import utils
@@ -105,9 +105,11 @@ def run(plate_list: List[str]) -> None:
     model_parameters = experiment.get_model_parameters()
     lims_db = db_uploader.DatabaseUploader(session)
     if lims_db.already_uploaded(workflow_id, variant):
-        raise AlreadyUploadedError(
+        print(
             f"workflow:{workflow_id} variant:{variant} already have results in the database"
         )
+        # still exit successfully so task is marked as complete
+        return None
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
     lims_db.upload_normalised_results(normalised_data)
@@ -153,9 +155,11 @@ def run_titration(plate_list: List[str]) -> None:
     titration = Titration(titration_dataframe, variant=variant)
     workflow_id = titration.workflow_id
     if lims_db.already_uploaded(workflow_id, variant, titration=True):
-        raise AlreadyUploadedError(
-            f"(titration) workflow_id:{workflow_id} variant:{variant} already have results in the database"
+        print(
+            "(titration) workflow_id:{workflow_id} variant:{variant} already have results in the database"
         )
+        # still exit successfully so task is marked as complete
+        return None
     titration_results = titration.get_titration_results()
     lims_db.upload_titration_results(titration_results)
     lims_db.update_titration_workflow_tracking(workflow_id, variant)
