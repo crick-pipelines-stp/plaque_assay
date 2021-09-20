@@ -301,6 +301,26 @@ def get_variant_from_plate_list(
     return return_val.mutant_strain
 
 
+def get_workflow_id_from_plate_list(plate_list: List[str]) -> int:
+    """
+    Fetch workflow_id from the plate list
+
+    Parameters
+    ----------
+    plate_list: list
+        list o 2 full-length paths to plate directories
+
+    Returns
+    -------
+    int
+        workflow_id
+    """
+    assert len(plate_list) == 2, "expected plate_list to have 2 paths"
+    prefixes = [get_prefix_from_full_path(i) for i in plate_list]
+    assert len(set(prefixes)) == 1, "expecting identical workflow_ids"
+    return int(prefixes[0])
+
+
 def titration_pos_control_dilution(well) -> Optional[int]:
     """
     Get dilution number from well label.
