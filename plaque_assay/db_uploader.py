@@ -269,7 +269,7 @@ class DatabaseUploader:
         assert len(set(workflow_id)) == 1
         norm_results["workflow_id"] = workflow_id
         norm_results["well"] = utils.unpad_well_col(norm_results["well"])
-        norm_results = norm_results.replace({np.inf: None})
+        norm_results = self.fix_for_mysql(norm_results)
         self.session.bulk_insert_mappings(
             db_models.NE_normalized_results, norm_results.to_dict(orient="records")
         )
@@ -294,10 +294,8 @@ class DatabaseUploader:
         assert results["experiment"].nunique() == 1
         assert results["variant"].nunique() == 1
         results["workflow_id"] = results["experiment"].astype(int)
-        results = self.fix_for_mysql(results)
-        # can't store NaN in mysql, to convert to None which are stored as null
-        results = results.replace({np.nan: None})
         results["well"] = utils.unpad_well_col(results["well"])
+        results = self.fix_for_mysql(results)
         self.session.bulk_insert_mappings(
             db_models.NE_final_results, results.to_dict(orient="records")
         )
