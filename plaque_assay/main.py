@@ -91,25 +91,24 @@ def run(plate_list: List[str]) -> None:
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
-    dataset = ingest.read_data_from_list(plate_list)
-    indexfiles = ingest.read_indexfiles_from_list(plate_list)
-    # add variant information to dataset and indexfiles dataframes
-    variant = utils.get_variant_from_plate_list(plate_list, session)
-    dataset["variant"] = variant
-    indexfiles["variant"] = variant
-    experiment = Experiment(dataset)
-    workflow_id = int(experiment.experiment_name)
-    normalised_data = experiment.get_normalised_data()
-    final_results = experiment.get_results_as_dataframe()
-    failures = experiment.get_failures_as_dataframe()
-    model_parameters = experiment.get_model_parameters()
     lims_db = db_uploader.DatabaseUploader(session)
+    variant = utils.get_variant_from_plate_list(plate_list, session)
+    workflow_id = utils.get_workflow_id_from_plate_list(plate_list)
     if lims_db.already_uploaded(workflow_id, variant):
         print(
             f"workflow:{workflow_id} variant:{variant} already have results in the database"
         )
         # still exit successfully so task is marked as complete
         return None
+    dataset = ingest.read_data_from_list(plate_list)
+    indexfiles = ingest.read_indexfiles_from_list(plate_list)
+    dataset["variant"] = variant
+    indexfiles["variant"] = variant
+    experiment = Experiment(dataset)
+    normalised_data = experiment.get_normalised_data()
+    final_results = experiment.get_results_as_dataframe()
+    failures = experiment.get_failures_as_dataframe()
+    model_parameters = experiment.get_model_parameters()
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
     lims_db.upload_normalised_results(normalised_data)
@@ -150,16 +149,16 @@ def run_titration(plate_list: List[str]) -> None:
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     lims_db = db_uploader.DatabaseUploader(session)
-    titration_dataframe = ingest.read_titration_data_from_list(plate_list)
     variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
-    titration = Titration(titration_dataframe, variant=variant)
-    workflow_id = titration.workflow_id
+    workflow_id = utils.get_workflow_id_from_plate_list(plate_list)
     if lims_db.already_uploaded(workflow_id, variant, titration=True):
         print(
             "(titration) workflow_id:{workflow_id} variant:{variant} already have results in the database"
         )
         # still exit successfully so task is marked as complete
         return None
+    titration_dataframe = ingest.read_titration_data_from_list(plate_list)
+    titration = Titration(titration_dataframe, variant=variant)
     titration_results = titration.get_titration_results()
     lims_db.upload_titration_results(titration_results)
     lims_db.update_titration_workflow_tracking(workflow_id, variant)
