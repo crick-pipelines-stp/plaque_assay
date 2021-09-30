@@ -77,7 +77,6 @@ class Titration:
             dilutions.append(dilution)
             titration_dilution_object = self.dilution_store[dilution]
             infection_rate = titration_dilution_object.infection_rate
-            print(infection_rate)
             infection_rates.append(infection_rate)
             mean_squared_errors.append(dilution_sample.mean_squared_error)
             if dilution_sample.ic50 < 0:
