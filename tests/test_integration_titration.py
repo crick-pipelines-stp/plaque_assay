@@ -1,21 +1,21 @@
-#import os
-#import datetime
+# import os
+# import datetime
 #
-#import pandas as pd
-#import sqlalchemy
+# import pandas as pd
+# import sqlalchemy
 #
-#from plaque_assay import ingest, db_models, utils, db_uploader
-#from plaque_assay.titration import Titration
+# from plaque_assay import ingest, db_models, utils, db_uploader
+# from plaque_assay.titration import Titration
 #
 #
-#CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-#TEST_DATA_MOCK = os.path.abspath(
+# CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# TEST_DATA_MOCK = os.path.abspath(
 #    os.path.join(CURRENT_DIR, "test_data", "titration_data", "mock_data")
-#)
-#PLATE_LIST_MOCK = [os.path.join(TEST_DATA_MOCK, i) for i in os.listdir(TEST_DATA_MOCK)]
+# )
+# PLATE_LIST_MOCK = [os.path.join(TEST_DATA_MOCK, i) for i in os.listdir(TEST_DATA_MOCK)]
 #
 #
-#def setup_module():
+# def setup_module():
 #    """create in-memory sqlite Serology database for testing"""
 #    global engine
 #    global session
@@ -44,11 +44,11 @@
 #    run_titration_pipeline(PLATE_LIST_MOCK)
 #
 #
-#def teardown_module():
+# def teardown_module():
 #    pass
 #
 #
-#def run_titration_pipeline(plate_list):
+# def run_titration_pipeline(plate_list):
 #    dataset = ingest.read_titration_data_from_list(plate_list)
 #    variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
 #    titration = Titration(dataset, variant=variant)
@@ -60,7 +60,7 @@
 #    lims_db.commit()
 #
 #
-#def test_titration_pipeline():
+# def test_titration_pipeline():
 #    query_results = session.query(db_models.NE_virus_titration_results).filter(
 #        db_models.NE_virus_titration_results.variant == "England2"
 #    )

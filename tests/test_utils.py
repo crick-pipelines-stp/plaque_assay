@@ -107,7 +107,7 @@ def test_get_variant_from_plate_list():
     assert variant_titration_india == VARIANT_INDIA
 
 
-#def test_titration_pos_control_dilution():
+# def test_titration_pos_control_dilution():
 #    examples = [
 #        ("G01", 4),
 #        ("H01", 3),

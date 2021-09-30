@@ -4,7 +4,7 @@ import consts
 from ..utils import is_odd, is_even
 
 
-def titration_pos_control_dilution(well) -> Optional[int]:
+def pos_control_dilution(well) -> Optional[int]:
     """
     Get dilution number from well label.
     NOTE: this is not the virus dilution factor which is positioned in pairs

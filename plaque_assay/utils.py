@@ -1,14 +1,13 @@
 import os
 import string
 import math
-from typing import List, Union, Optional
+from typing import List, Union
 
 import pandas as pd
 import sqlalchemy
 
 from .db_models import NE_available_strains
 from .errors import VariantLookupError
-from . import consts
 
 
 RESULT_TO_INT = {
