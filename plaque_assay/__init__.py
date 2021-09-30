@@ -26,5 +26,5 @@ __all__ = [
     "qc_criteria",
     "db_models",
     "errors",
-    "titration"
+    "titration",
 ]

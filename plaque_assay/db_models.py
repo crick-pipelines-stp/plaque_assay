@@ -185,18 +185,6 @@ class NE_reporter_plate_status(Base):
     reason = sql.Column(sql.TEXT)
 
 
-class NE_virus_titration_results(Base):
-    __tablename__ = "NE_virus_titration_results"
-    id = sql.Column(sql.Integer, primary_key=True)
-    dilution = sql.Column(sql.Integer, nullable=False)
-    ic50 = sql.Column(sql.DECIMAL(30, 15))
-    status = sql.Column(sql.String(45))
-    mean_squared_error = sql.Column(sql.DECIMAL(20, 15))
-    median_virus_only_plaque_area = sql.Column(sql.DECIMAL(20, 15))
-    variant = sql.Column(sql.String(45), nullable=False)
-    workflow_id = sql.Column(sql.Integer, nullable=False)
-
-
 class NE_titration_workflow_tracking(Base):
     __tablename__ = "NE_titration_workflow_tracking"
     id = sql.Column(sql.Integer, primary_key=True)
@@ -207,5 +195,38 @@ class NE_titration_workflow_tracking(Base):
     start_date = sql.Column(sql.TIMESTAMP, nullable=False)
     end_date = sql.Column(sql.TIMESTAMP)
     complete_operator = sql.Column(sql.String(45))
+    status = sql.Column(sql.String(45))
+    workflow_id = sql.Column(sql.Integer, nullable=False)
+
+
+class NE_virus_titration_normalised_results(Base):
+    __tablename__ = "NE_virus_titration_normalised_results"
+    id = sql.Column(sql.Integer, primary_key=True)
+    plaque_area = sql.Column(sql.DECIMAL(30, 20))
+    background_subtracted_plaque_area = sql.Column(sql.DECIMAL(30, 30))
+    percentage_infected = sql.Column(sql.DECIMAL(20, 15))
+    dilution = sql.Column(sql.Integer, nullable=True)
+    well = sql.Column(sql.String(3), nullable=False)
+    plate_barcode = sql.Column(sql.String(9))
+    workflow_id = sql.Column(sql.Integer, nullable=False)
+
+
+class NE_virus_titration_model_parameters(Base):
+    __tablename__ = "NE_virus_titration_model_parameters"
+    id = sql.Column(sql.Integer, primary_key=True)
+    dilution = sql.Column(sql.Integer, nullable=False)
+    param_top = sql.Column(sql.DECIMAL(20, 15))
+    param_bottom = sql.Column(sql.DECIMAL(20, 15))
+    param_ec50 = sql.Column(sql.DECIMAL(20, 15))
+    param_hillslope = sql.Column(sql.DECIMAL(20, 15))
+    mean_squared_error = sql.Column(sql.DECIMAL(20, 15))
+    workflow_id = sql.Column(sql.Integer, nullable=False)
+
+
+class NE_virus_titration_final_results(Base):
+    __tablename__ = "NE_virus_titration_final_results"
+    id = sql.Column(sql.Integer, primary_key=True)
+    dilution = sql.Column(sql.Integer, nullable=False)
+    ic50 = sql.Column(sql.DECIMAL(30, 15))
     status = sql.Column(sql.String(45))
     workflow_id = sql.Column(sql.Integer, nullable=False)

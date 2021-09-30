@@ -51,7 +51,9 @@ def teardown_module():
 
 def run_titration_pipeline(plate_list):
     dataset = titration.ingest.read_data_from_list(plate_list)
-    variant = plaque_assay.utils.get_variant_from_plate_list(plate_list, session, titration=True)
+    variant = plaque_assay.utils.get_variant_from_plate_list(
+        plate_list, session, titration=True
+    )
     titration_cl = titration.titration.Titration(dataset, variant=variant)
     workflow_id = titration_cl.workflow_id
     normalised_results = titration_cl.get_normalised_results()
@@ -66,9 +68,9 @@ def run_titration_pipeline(plate_list):
 
 
 def test_titration_pipeline():
-    query_results = session.query(db_models.NE_virus_titration_results).filter(
-        db_models.NE_virus_titration_results.variant == "England2"
-    )
+    query_results = session.query(
+        db_models.NE_virus_titration_normalised_results
+    ).filter(db_models.NE_virus_titration_normalised_results.workflow_id == 1)
     df = pd.read_sql(query_results.statement, con=session.bind)
     assert df.shape[0] > 0
     query_tracking = session.query(db_models.NE_titration_workflow_tracking).filter(
