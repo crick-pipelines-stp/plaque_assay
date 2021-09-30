@@ -81,7 +81,7 @@ def run_experiment(plate_list):
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
     model_parameters = experiment.get_model_parameters()
-    lims_db = db_uploader.DatabaseUploader(session)
+    lims_db = db_uploader.AnalysisDatabaseUploader(session)
     lims_db.upload_plate_results(dataset)
     lims_db.upload_indexfiles(indexfiles)
     lims_db.upload_normalised_results(normalised_data)
@@ -159,7 +159,7 @@ def test_normalised_results():
 
 
 def test_already_uploaded():
-    lims_db = db_uploader.DatabaseUploader(session)
+    lims_db = db_uploader.AnalysisDatabaseUploader(session)
     variant = "England2"
     workflow_id = 191
     assert lims_db.already_uploaded(workflow_id, variant)

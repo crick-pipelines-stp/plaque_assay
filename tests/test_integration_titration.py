@@ -4,8 +4,9 @@ import datetime
 import pandas as pd
 import sqlalchemy
 
-from plaque_assay import ingest, db_models, utils, db_uploader
-from plaque_assay.titration import Titration
+import plaque_assay
+from plaque_assay import db_models
+from plaque_assay import titration
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,21 +50,27 @@ def teardown_module():
 
 
 def run_titration_pipeline(plate_list):
-    dataset = ingest.read_titration_data_from_list(plate_list)
-    variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
-    titration = Titration(dataset, variant=variant)
-    workflow_id = titration.workflow_id
-    results = titration.get_titration_results()
-    lims_db = db_uploader.DatabaseUploader(session)
-    lims_db.upload_titration_results(results)
-    lims_db.update_titration_workflow_tracking(workflow_id, variant)
+    dataset = titration.ingest.read_data_from_list(plate_list)
+    variant = plaque_assay.utils.get_variant_from_plate_list(
+        plate_list, session, titration=True
+    )
+    titration_cl = titration.titration.Titration(dataset, variant=variant)
+    workflow_id = titration_cl.workflow_id
+    normalised_results = titration_cl.get_normalised_results()
+    final_results = titration_cl.get_final_results()
+    model_parameters = titration_cl.get_model_parameters()
+    lims_db = titration.db_uploader.TitrationDatabaseUploader(session)
+    lims_db.upload_final_results(final_results)
+    lims_db.upload_model_parameters(model_parameters)
+    lims_db.upload_normalised_results(normalised_results)
+    lims_db.update_workflow_tracking(workflow_id=workflow_id)
     lims_db.commit()
 
 
 def test_titration_pipeline():
-    query_results = session.query(db_models.NE_virus_titration_results).filter(
-        db_models.NE_virus_titration_results.variant == "England2"
-    )
+    query_results = session.query(
+        db_models.NE_virus_titration_normalised_results
+    ).filter(db_models.NE_virus_titration_normalised_results.workflow_id == 1)
     df = pd.read_sql(query_results.statement, con=session.bind)
     assert df.shape[0] > 0
     query_tracking = session.query(db_models.NE_titration_workflow_tracking).filter(

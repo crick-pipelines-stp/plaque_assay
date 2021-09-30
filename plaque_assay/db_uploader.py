@@ -8,14 +8,8 @@ from plaque_assay import db_models
 from plaque_assay import utils
 
 
-class DatabaseUploader:
-    """
-    Attributes
-    ----------
-    session : sql.orm.session.Session
-        sqlalchemy session to LIMS serology database
-
-    """
+class BaseDatabaseUploader:
+    """Base class for DataBaseUploader and TitrationDatabaseUploader"""
 
     def __init__(self, session):
         self.session = session
@@ -40,9 +34,14 @@ class DatabaseUploader:
         """commit data to LIMS serology database"""
         self.session.commit()
 
-    def already_uploaded(
-        self, workflow_id: int, variant: str, titration: bool = False
-    ) -> bool:
+
+class AnalysisDatabaseUploader(BaseDatabaseUploader):
+    """analysis-specific database uploader"""
+
+    def __init__(self, session):
+        super().__init__(session)
+
+    def already_uploaded(self, workflow_id: int, variant: str) -> bool:
         """
         Check if the results for a given workflow_id and variant
         have already been uploaded.
@@ -55,19 +54,17 @@ class DatabaseUploader:
         -----------
         workflow_id : int
         variant : str
-        titration: bool (default = False)
 
         Returns
         --------
         bool
         """
-        if titration:
-            table = db_models.NE_virus_titration_results
-        else:
-            table = db_models.NE_final_results
         result = (
-            self.session.query(table)
-            .filter(table.workflow_id == workflow_id, table.variant == variant,)
+            self.session.query(db_models.NE_final_results)
+            .filter(
+                db_models.NE_final_results.workflow_id == workflow_id,
+                db_models.NE_final_results.variant == variant,
+            )
             .first()
         )
         return result is not None
@@ -388,46 +385,3 @@ class DatabaseUploader:
             workflow_id=int(workflow_id), variant=variant, status="awaiting"
         )
         self.session.add(plate_entry)
-
-    def upload_titration_results(self, titration_results: pd.DataFrame) -> None:
-        """
-        Parameters
-        ----------
-        titration_results: pd.DataFrame
-
-        Returns
-        -------
-        None
-            Uploads results to the LIMS database.
-        """
-        # can't store NaNs
-        titration_results = self.fix_for_mysql(titration_results)
-        self.session.bulk_insert_mappings(
-            db_models.NE_virus_titration_results,
-            titration_results.to_dict(orient="records"),
-        )
-
-    def update_titration_workflow_tracking(self, workflow_id: int, variant: str):
-        """Update NE_titration_workflow_tracking table to indicate the
-        titration has been uploaded.
-
-        Parameters
-        ----------
-        workflow_id: int
-        variant: str
-        """
-        timestamp = datetime.now(timezone.utc)
-        # fmt: off
-        self.session\
-            .query(db_models.NE_titration_workflow_tracking)\
-            .filter(
-                db_models.NE_titration_workflow_tracking.workflow_id == workflow_id,
-                db_models.NE_titration_workflow_tracking.variant == variant
-            )\
-            .update(
-                {
-                    db_models.NE_titration_workflow_tracking.status: "complete",
-                    db_models.NE_titration_workflow_tracking.end_date: timestamp
-                }
-            )
-        # fmt: on

@@ -72,7 +72,8 @@ class TitrationDilution:
         return df
 
     def calc_percentage_infected(self) -> None:
-        """Calculate percentage infected.
+        """Calculate percentage infected. Adds "Percentage Infected" column
+        to self.df.
 
         `Percentage Infected` is the `Background Subtracted Plaque Area`
         divided by the median of the virus only wells x 100.

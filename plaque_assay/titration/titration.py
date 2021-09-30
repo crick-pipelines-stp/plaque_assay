@@ -3,13 +3,14 @@ Titration class is similar to the Experiment class but used
 with titration plates.
 """
 
+from collections import defaultdict
 from typing import Dict, List, Optional
 
 import pandas as pd
 
-from .sample import Sample
+from ..sample import Sample
 from .titration_dilution import TitrationDilution
-from . import utils
+from .. import utils
 
 
 class Titration:
@@ -51,14 +52,14 @@ class Titration:
             sample_dict[dilution] = Sample(str(dilution), sample_df, self.variant)
         return sample_dict
 
-    def get_titration_results(self) -> pd.DataFrame:
+    def get_final_results(self) -> pd.DataFrame:
         """
         return dataframe of titration results suitable for uploading to
         the LIMS database. e.g:
-        +----------+------+--------+--------------------+-------------------------------+---------+-------------+
-        | dilution | ic50 | status | mean_squared_error | median_virus_only_plaque_area | variant | workflow_id |
-        +----------+------+--------+--------------------+-------------------------------+---------+-------------+
-        |          |      |        |                    |                               |         |             |
+        +----------+------+--------+-------------+
+        | dilution | ic50 | status | workflow_id |
+        +----------+------+--------+-------------+
+        |          |      |        |             |
 
         Arguments
         ---------
@@ -71,15 +72,8 @@ class Titration:
         dilutions: List[int] = []
         ic50s: List[Optional[float]] = []
         statuses: List[Optional[str]] = []
-        mean_squared_errors: List[Optional[float]] = []
-        infection_rates: List[float] = []
         for dilution, dilution_sample in self.samples:
             dilutions.append(dilution)
-            titration_dilution_object = self.dilution_store[dilution]
-            infection_rate = titration_dilution_object.infection_rate
-            print(infection_rate)
-            infection_rates.append(infection_rate)
-            mean_squared_errors.append(dilution_sample.mean_squared_error)
             if dilution_sample.ic50 < 0:
                 # is an error code
                 ic50s.append(None)
@@ -90,14 +84,58 @@ class Titration:
                 ic50s.append(dilution_sample.ic50)
                 statuses.append(None)
         results_df = pd.DataFrame(
-            {
-                "dilution": dilutions,
-                "ic50": ic50s,
-                "status": statuses,
-                "mean_squared_error": mean_squared_errors,
-                "median_virus_only_plaque_area": infection_rates,
-            }
+            {"dilution": dilutions, "ic50": ic50s, "status": statuses}
         )
-        results_df["variant"] = self.variant
         results_df["workflow_id"] = self.workflow_id
         return results_df
+
+    def get_model_parameters(self) -> pd.DataFrame:
+        """
+        return a dataframe of model parameters
+
+        Arguments
+        ----------
+        None
+
+        Returns
+        --------
+        pd.DataFrame
+        """
+        param_dict = defaultdict(list)
+        for dilution, dilution_sample in self.samples:
+            model_params = dilution_sample.model_params
+            mean_squared_error = dilution_sample.mean_squared_error
+            if model_params:
+                top, bottom, ec50, hillslope = model_params
+            else:
+                top, bottom, ec50, hillslope = None, None, None, None
+            param_dict["dilution"].append(dilution)
+            param_dict["param_top"].append(top)
+            param_dict["param_bottom"].append(bottom)
+            param_dict["param_ec50"].append(ec50)
+            param_dict["param_hillslope"].append(hillslope)
+            param_dict["mean_squared_error"].append(mean_squared_error)
+        df = pd.DataFrame(param_dict)
+        df["workflow_id"] = self.workflow_id
+        return df
+
+    def get_normalised_results(self) -> pd.DataFrame:
+        """
+        return a dataframe of normalised results
+
+        Arguments
+        ----------
+        None
+
+        Returns
+        --------
+        pd.DataFrame
+        """
+        dilution_dataframe_list = []
+        for dilution_name, dilution_sample in self.dilution_store.items():
+            tmp_df = dilution_sample.df
+            tmp_df["dilution"] = dilution_name
+            dilution_dataframe_list.append(tmp_df)
+        df_all = pd.concat(dilution_dataframe_list)
+        df_all["workflow_id"] = self.workflow_id
+        return df_all
