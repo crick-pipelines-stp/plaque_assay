@@ -10,6 +10,7 @@ from plaque_assay import consts
 from plaque_assay import qc_criteria
 from plaque_assay import db_models
 from plaque_assay import errors
+from plaque_assay import titration
 
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "qc_criteria",
     "db_models",
     "errors",
+    "titration"
 ]

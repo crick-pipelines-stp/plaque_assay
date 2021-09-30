@@ -1,6 +1,6 @@
 from typing import Optional
 
-import consts
+from . import consts
 from ..utils import is_odd, is_even
 
 

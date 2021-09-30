@@ -57,23 +57,19 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         # bulk insert mappings
         raise NotImplementedError()
 
-    def update_workflow_tracking(self, workflow_id: int, variant: str) -> None:
+    def update_workflow_tracking(self, workflow_id: int) -> None:
         """Update NE_titration_workflow_tracking table to indicate the
         titration for a given workflow_id has been uploaded.
 
         Parameters
         ----------
         workflow_id: int
-        variant: str
         """
         timestamp = datetime.now(timezone.utc)
         # fmt: off
         self.session\
             .query(db_models.NE_titration_workflow_tracking)\
-            .filter(
-                db_models.NE_titration_workflow_tracking.workflow_id == workflow_id,
-                db_models.NE_titration_workflow_tracking.variant == variant
-            )\
+            .filter(db_models.NE_titration_workflow_tracking.workflow_id == workflow_id)\
             .update(
                 {
                     db_models.NE_titration_workflow_tracking.status: "complete",

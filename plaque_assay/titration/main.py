@@ -36,5 +36,5 @@ def run(plate_list: List[str]) -> None:
     lims_db_titration.upload_normalised_results(normalised_results)
     lims_db_titration.upload_final_results(final_results)
     lims_db_titration.upload_model_parameters(model_parameters)
-    lims_db_titration.update_workflow_tracking(workflow_id=workflow_id, variant=variant)
+    lims_db_titration.update_workflow_tracking(workflow_id=workflow_id)
     lims_db_titration.commit()
