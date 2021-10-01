@@ -9,8 +9,8 @@ from typing import List
 
 import pandas as pd
 
-from . import utils
-from . import consts
+from plaque_assay import utils
+from plaque_assay import consts
 
 
 def read_data_from_list(plate_list: List) -> pd.DataFrame:

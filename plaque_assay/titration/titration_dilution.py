@@ -5,7 +5,7 @@ have QC checking.
 
 import pandas as pd
 
-from . import consts
+from plaque_assay.titration import consts
 
 
 class TitrationDilution:

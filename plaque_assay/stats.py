@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import scipy.optimize
 
-from . import utils
+from plaque_assay import utils
 
 
 Numeric = Union[int, float]

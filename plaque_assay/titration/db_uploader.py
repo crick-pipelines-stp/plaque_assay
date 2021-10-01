@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from ..db_uploader import BaseDatabaseUploader
-from .. import db_models
-from ..utils import unpad_well
+from plaque_assay.db_uploader import BaseDatabaseUploader
+from plaque_assay import db_models
+from plaque_assay.utils import unpad_well
 
 
 class TitrationDatabaseUploader(BaseDatabaseUploader):
