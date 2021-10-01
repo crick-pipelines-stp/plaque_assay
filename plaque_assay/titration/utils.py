@@ -1,3 +1,7 @@
+"""
+titration-specific utility functions
+"""
+
 from typing import Optional
 
 from . import consts

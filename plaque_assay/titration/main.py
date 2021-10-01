@@ -19,6 +19,7 @@ def run(plate_list: List[str]) -> None:
     Returns
     -------
     None
+        writes to database
     """
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)

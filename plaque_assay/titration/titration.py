@@ -56,10 +56,12 @@ class Titration:
         """
         return dataframe of titration results suitable for uploading to
         the LIMS database. e.g:
+        ```
         +----------+------+--------+-------------+
         | dilution | ic50 | status | workflow_id |
         +----------+------+--------+-------------+
         |          |      |        |             |
+        ```
 
         Arguments
         ---------

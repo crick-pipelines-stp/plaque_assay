@@ -27,6 +27,16 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         Parameters
         ----------
         normalised_results: pd.DataFrame
+            dataframe from `Titration.get_normalised_results()` with the
+            columns:
+
+            - plaque_area
+            - background_subtracted_plaque_area
+            - percentage_infected
+            - dilution
+            - well
+            - plate_barcode
+            - workflow_id
 
         Returns
         -------
@@ -61,7 +71,27 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         )
 
     def upload_model_parameters(self, model_parameters: pd.DataFrame) -> None:
-        """docstring"""
+        """Upload model parameters to LIMS db
+
+        Parameters
+        -----------
+        model_parameters: pd.DataFrame
+            dataframe of model parameters from
+            `Titration.get_model_parameters()` which has the columns:
+
+            - dilution
+            - param_top
+            - param_bottom
+            - param_ec50,
+            - param_hillslope
+            - mean_squared_error
+
+
+        Returns
+        -------
+        None
+            writes to database
+        """
         model_parameters = self.fix_for_mysql(model_parameters)
         self.session.bulk_insert_mappings(
             db_models.NE_virus_titration_model_parameters,
@@ -69,7 +99,24 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         )
 
     def upload_final_results(self, final_results: pd.DataFrame) -> None:
-        """docstring"""
+        """Upload final results to LIMS db.
+
+        Parameters
+        ----------
+        final_results: pd.DataFrame
+            dataframe of final results from `Titration.get_final_results()`
+            with the columns :
+
+            - dilution
+            - ic50
+            - status
+            - workflow_id
+
+        Returns
+        -------
+        None
+            writes to database
+        """
         # remove NaN/infs
         final_results = self.fix_for_mysql(final_results)
         # bulk insert mappings
@@ -85,6 +132,11 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         Parameters
         ----------
         workflow_id: int
+
+        Returns
+        --------
+        None
+            writes to database
         """
         timestamp = datetime.now(timezone.utc)
         # fmt: off
