@@ -2,11 +2,11 @@ from typing import List
 
 import sqlalchemy
 
-from . import db_uploader
-from . import ingest
-from .. import utils
-from ..main import create_engine
-from .titration import Titration
+from plaque_assay.titration import db_uploader
+from plaque_assay.titration import ingest
+from plaque_assay import utils
+from plaque_assay.main import create_engine
+from plaque_assay.titration.titration import Titration
 
 
 def run(plate_list: List[str]) -> None:
