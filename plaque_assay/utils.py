@@ -6,8 +6,8 @@ from typing import List, Union
 import pandas as pd
 import sqlalchemy
 
-from .db_models import NE_available_strains
-from .errors import VariantLookupError
+from plaque_assay.db_models import NE_available_strains
+from plaque_assay.errors import VariantLookupError
 
 
 RESULT_TO_INT = {

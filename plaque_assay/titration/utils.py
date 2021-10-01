@@ -4,8 +4,8 @@ titration-specific utility functions
 
 from typing import Optional
 
-from . import consts
-from ..utils import is_odd, is_even
+from plaque_assay.titration import consts
+from plaque_assay.utils import is_odd, is_even
 
 
 def pos_control_dilution(well) -> Optional[int]:

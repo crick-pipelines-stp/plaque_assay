@@ -10,9 +10,9 @@ from typing import Dict, List, Any
 
 import pandas as pd
 
-from . import utils
-from .plate import Plate
-from .sample import Sample
+from plaque_assay import utils
+from plaque_assay.plate import Plate
+from plaque_assay.sample import Sample
 
 
 class Experiment:

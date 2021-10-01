@@ -11,9 +11,9 @@ import sqlalchemy
 from plaque_assay.experiment import Experiment
 from plaque_assay.errors import DatabaseCredentialError
 
-from .db_uploader import AnalysisDatabaseUploader
-from . import ingest
-from . import utils
+from plaque_assay.db_uploader import AnalysisDatabaseUploader
+from plaque_assay import ingest
+from plaque_assay import utils
 
 
 def create_engine(test: bool = True) -> sqlalchemy.engine.base.Engine:

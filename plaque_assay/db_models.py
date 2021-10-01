@@ -1,4 +1,5 @@
 from typing import Any
+
 import sqlalchemy as sql
 from sqlalchemy.ext.declarative import declarative_base
 

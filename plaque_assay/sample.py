@@ -3,15 +3,15 @@ module docstring
 """
 from typing import List, Union, Set
 
-from . import stats
-from . import failure
-from . import utils
-from . import qc_criteria
-from .consts import POSITIVE_CONTROL_WELLS
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+from plaque_assay import stats
+from plaque_assay import failure
+from plaque_assay import utils
+from plaque_assay import qc_criteria
+from plaque_assay.consts import POSITIVE_CONTROL_WELLS
 
 
 class Sample:

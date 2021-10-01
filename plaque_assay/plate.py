@@ -34,9 +34,9 @@ from typing import Set
 
 import pandas as pd
 
-from . import failure
-from . import qc_criteria
-from .consts import VIRUS_ONLY_WELLS, NO_VIRUS_WELLS
+from plaque_assay import failure
+from plaque_assay import qc_criteria
+from plaque_assay.consts import VIRUS_ONLY_WELLS, NO_VIRUS_WELLS
 
 
 class Plate:
