@@ -44,15 +44,19 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
             Uploads to the LIMS database.
         """
         normalised_results.drop(columns=["Dilution", "dilution"], inplace=True)
+        normalised_results = normalised_results.rename(columns={
+            "Viral Plaques (global) - Area of Viral Plaques Area [µm²] - Mean per Well": "plaque_area"
+        })
         # select and rename columns to match db
         new_colnames = [i.lower().replace(" ", "_") for i in normalised_results.columns]
         normalised_results.columns = new_colnames
         select_cols = [
+            "plaque_area",
             "normalised_plaque_area",
+            "background_subtracted_plaque_area",
             "well",
             "plate_barcode",
             "virus_dilution_factor",
-            "background_subtracted_plaque_area",
             "percentage_infected",
             "workflow_id",
         ]
