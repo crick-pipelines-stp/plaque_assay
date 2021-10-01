@@ -1,10 +1,10 @@
-from . import consts
-from . import ingest
-from . import db_uploader
-from . import titration
-from . import titration_dilution
-from . import main
-from . import utils
+from plaque_assay.titration import consts
+from plaque_assay.titration import ingest
+from plaque_assay.titration import db_uploader
+from plaque_assay.titration import titration
+from plaque_assay.titration import titration_dilution
+from plaque_assay.titration import main
+from plaque_assay.titration import utils
 
 __all__ = [
     "consts",
