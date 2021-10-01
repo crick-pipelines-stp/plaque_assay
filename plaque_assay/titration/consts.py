@@ -10,6 +10,8 @@ TITRATION_VIRUS_ONLY_ROWS = (
     "D",
     "E",
     "F",
+    # G nanobody
+    # H nanobody
     "I",
     "J",
     "K",
@@ -17,6 +19,7 @@ TITRATION_VIRUS_ONLY_ROWS = (
     "M",
     "N",
     "O",
+    # P no virus
 )
 
 TITRATION_VIRUS_ONLY_WELLS = [
@@ -36,16 +39,16 @@ TITRATION_POSITIVE_CONTROL_WELLS = [
 ]
 
 TITRATION_COLUMN_DILUTION_MAPPING = {
-    1: 8,
-    2: 8,
-    3: 16,
-    4: 16,
-    5: 32,
-    6: 32,
-    7: 40,
-    8: 40,
-    9: 50,
-    10: 50,
+    1: 2,
+    2: 2,
+    3: 4,
+    4: 4,
+    5: 8,
+    6: 8,
+    7: 16,
+    8: 16,
+    9: 32,
+    10: 32,
     11: 64,
     12: 64,
 }
