@@ -26,9 +26,7 @@ def setup_module():
     """create in-memory sqlite Serology database for testing"""
     global engine
     global session
-    engine = sqlalchemy.create_engine(
-        "sqlite:////home/warchas/neutralisation_titration_test.db"
-    )
+    engine = sqlalchemy.create_engine("sqlite://")
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     # create tables from model definitions
