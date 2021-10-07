@@ -18,7 +18,14 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         check if results have already been uploaded for a
         given workflow_id
         """
-        raise NotImplementedError()
+        final_results_for_this_workflow = (
+            self.session.query(db_models.NE_virus_titration_final_results)
+            .filter(
+                db_models.NE_virus_titration_final_results.workflow_id == workflow_id
+            )
+            .first()
+        )
+        return final_results_for_this_workflow is not None
 
     def upload_normalised_results(self, normalised_results: pd.DataFrame) -> None:
         """Uploads normalised titration results to the
@@ -44,9 +51,11 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
             Uploads to the LIMS database.
         """
         normalised_results.drop(columns=["Dilution", "dilution"], inplace=True)
-        normalised_results = normalised_results.rename(columns={
-            "Viral Plaques (global) - Area of Viral Plaques Area [µm²] - Mean per Well": "plaque_area"
-        })
+        normalised_results = normalised_results.rename(
+            columns={
+                "Viral Plaques (global) - Area of Viral Plaques Area [µm²] - Mean per Well": "plaque_area"
+            }
+        )
         # select and rename columns to match db
         new_colnames = [i.lower().replace(" ", "_") for i in normalised_results.columns]
         normalised_results.columns = new_colnames

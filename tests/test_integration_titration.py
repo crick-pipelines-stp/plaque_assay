@@ -26,7 +26,9 @@ def setup_module():
     """create in-memory sqlite Serology database for testing"""
     global engine
     global session
-    engine = sqlalchemy.create_engine("sqlite://")
+    engine = sqlalchemy.create_engine(
+        "sqlite:////home/warchas/neutralisation_titration_test.db"
+    )
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     # create tables from model definitions
@@ -93,12 +95,16 @@ def run_titration_pipeline(plate_list):
     variant = plaque_assay.utils.get_variant_from_plate_list(
         plate_list, session, titration=True
     )
+    lims_db = titration.db_uploader.TitrationDatabaseUploader(session)
+    workflow_id = plaque_assay.utils.get_workflow_id_from_plate_list(plate_list)
+    if lims_db.already_uploaded(workflow_id):
+        print(f"workflow_id: {workflow_id} already have results in the database")
+        # still exist successfully so task is marked complete
+        return None
     titration_cl = titration.titration.Titration(dataset, variant=variant)
-    workflow_id = titration_cl.workflow_id
     normalised_results = titration_cl.get_normalised_results()
     final_results = titration_cl.get_final_results()
     model_parameters = titration_cl.get_model_parameters()
-    lims_db = titration.db_uploader.TitrationDatabaseUploader(session)
     lims_db.upload_final_results(final_results)
     lims_db.upload_model_parameters(model_parameters)
     lims_db.upload_normalised_results(normalised_results)

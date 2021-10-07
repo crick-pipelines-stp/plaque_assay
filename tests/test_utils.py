@@ -107,6 +107,19 @@ def test_get_variant_from_plate_list():
     assert variant_titration_india == VARIANT_INDIA
 
 
+def test_get_workflow_id_from_plate_list():
+    plate_list_1 = [
+        "/example/Titration_raw_data/T09000100__2021_01_01T01_01_01-Measurement 1",
+        "/example/Titration_raw_data/T10000100__2021_01_01T01_01_01-Measurement 1",
+    ]
+    assert utils.get_workflow_id_from_plate_list(plate_list_1) == 100
+    plate_list_2 = [
+        "/example/Titration_raw_data/S01000099__2021_01_01T01_01_01-Measurement 1",
+        "/example/Titration_raw_data/S02000099__2021_01_01T01_01_01-Measurement 1",
+    ]
+    assert utils.get_workflow_id_from_plate_list(plate_list_2) == 99
+
+
 # def test_titration_pos_control_dilution():
 #    examples = [
 #        ("G01", 4),
