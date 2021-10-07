@@ -300,6 +300,12 @@ def get_variant_from_plate_list(
     return return_val.mutant_strain
 
 
+def get_workflow_id_from_full_path(full_path: str) -> int:
+    basename = os.path.basename(full_path)
+    workflow_id = int(basename.split("__")[0][-6:])
+    return workflow_id
+
+
 def get_workflow_id_from_plate_list(plate_list: List[str]) -> int:
     """
     Fetch workflow_id from the plate list
@@ -315,6 +321,6 @@ def get_workflow_id_from_plate_list(plate_list: List[str]) -> int:
         workflow_id
     """
     assert len(plate_list) == 2, "expected plate_list to have 2 paths"
-    prefixes = [get_prefix_from_full_path(i) for i in plate_list]
+    prefixes = [get_workflow_id_from_full_path(i) for i in plate_list]
     assert len(set(prefixes)) == 1, "expecting identical workflow_ids"
     return int(prefixes[0])

@@ -29,6 +29,8 @@ def run(plate_list: List[str]) -> None:
     variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
     if lims_db_titration.already_uploaded(workflow_id):
         print(f"workflow_id: {workflow_id} already have results in the database")
+        # still exist successfully so task is marked complete
+        return None
     dataset = ingest.read_data_from_list(plate_list)
     titration = Titration(dataset, variant=variant)
     normalised_results = titration.get_normalised_results()

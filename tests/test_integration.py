@@ -76,7 +76,7 @@ def run_experiment(plate_list):
     dataset["variant"] = variant
     indexfiles["variant"] = variant
     experiment = Experiment(dataset)
-    workflow_id = int(experiment.experiment_name)
+    workflow_id = utils.get_workflow_id_from_plate_list(plate_list)
     normalised_data = experiment.get_normalised_data()
     final_results = experiment.get_results_as_dataframe()
     failures = experiment.get_failures_as_dataframe()
@@ -197,7 +197,6 @@ def test_failed_results_191():
         db_models.NE_failed_results.variant == "England2",
     )
     df_failures = pd.read_sql(query.statement, con=engine)
-    print(df_failures)
     # check we have some entries
     assert df_failures.shape[0] > 0
     # check we have both plate and well failures
