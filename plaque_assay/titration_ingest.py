@@ -6,7 +6,8 @@ import pandas as pd
 
 from plaque_assay import utils
 from plaque_assay import consts
-from plaque_assay import titration
+from plaque_assay import titration_consts
+from plaque_assay import titration_utils
 
 
 def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
@@ -47,11 +48,11 @@ def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
     df_concat = pd.concat(dataframes)
     # remove empty wells
     df_concat = df_concat[
-        ~df_concat["Well"].isin(titration.consts.TITRATION_EMPTY_WELLS)
+        ~df_concat["Well"].isin(titration_consts.TITRATION_EMPTY_WELLS)
     ]
     # sample dilutions (1-4)
     dilution_int = [
-        titration.utils.pos_control_dilution(well) for well in df_concat["Well"]
+        titration_utils.pos_control_dilution(well) for well in df_concat["Well"]
     ]
     # sample dilutions (40-2560)
     sample_dilution = [consts.plate_mapping.get(i) if i else None for i in dilution_int]
@@ -59,7 +60,7 @@ def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
     # virus dilution factors (2-64)
     virus_dilutions = []
     for col_int in df_concat["Column"]:
-        virus_dilution = titration.consts.TITRATION_COLUMN_DILUTION_MAPPING.get(col_int)
+        virus_dilution = titration_consts.TITRATION_COLUMN_DILUTION_MAPPING.get(col_int)
         virus_dilutions.append(virus_dilution)
     df_concat["Virus_dilution_factor"] = virus_dilutions
     return df_concat

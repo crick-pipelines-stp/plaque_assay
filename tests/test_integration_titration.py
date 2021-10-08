@@ -7,6 +7,8 @@ import sqlalchemy
 import plaque_assay
 from plaque_assay import db_models
 from plaque_assay import titration
+from plaque_assay import titration_db_uploader
+from plaque_assay import titration_ingest
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -89,17 +91,17 @@ def teardown_module():
 
 
 def run_titration_pipeline(plate_list):
-    dataset = titration.ingest.read_data_from_list(plate_list)
+    dataset = titration_ingest.read_data_from_list(plate_list)
     variant = plaque_assay.utils.get_variant_from_plate_list(
         plate_list, session, titration=True
     )
-    lims_db = titration.db_uploader.TitrationDatabaseUploader(session)
+    lims_db = titration_db_uploader.TitrationDatabaseUploader(session)
     workflow_id = plaque_assay.utils.get_workflow_id_from_plate_list(plate_list)
     if lims_db.already_uploaded(workflow_id):
         print(f"workflow_id: {workflow_id} already have results in the database")
         # still exist successfully so task is marked complete
         return None
-    titration_cl = titration.titration.Titration(dataset, variant=variant)
+    titration_cl = titration.Titration(dataset, variant=variant)
     normalised_results = titration_cl.get_normalised_results()
     final_results = titration_cl.get_final_results()
     model_parameters = titration_cl.get_model_parameters()

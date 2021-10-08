@@ -4,7 +4,7 @@ titration-specific utility functions
 
 from typing import Optional
 
-from plaque_assay.titration import consts
+from plaque_assay import titration_consts
 from plaque_assay.utils import is_odd, is_even
 
 
@@ -22,7 +22,7 @@ def pos_control_dilution(well) -> Optional[int]:
     H (even) | 3 | 1 |
              +---+---+
     """
-    if well not in consts.TITRATION_POSITIVE_CONTROL_WELLS:
+    if well not in titration_consts.TITRATION_POSITIVE_CONTROL_WELLS:
         return None
     row_int = ord(well[0]) - 64  # 1 indexed
     col_int = int(well[1:])

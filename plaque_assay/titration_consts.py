@@ -12,8 +12,8 @@ TITRATION_VIRUS_ONLY_ROWS = (
     "F",
     # G nanobody
     # H nanobody
-    "I",
-    "J",
+    # "I", held for later use
+    # "J", help for later use
     "K",
     "L",
     "M",

@@ -11,6 +11,11 @@ from plaque_assay import qc_criteria
 from plaque_assay import db_models
 from plaque_assay import errors
 from plaque_assay import titration
+from plaque_assay import titration_dilution
+from plaque_assay import titration_ingest
+from plaque_assay import titration_db_uploader
+from plaque_assay import titration_main
+from plaque_assay import titration_utils
 
 
 __all__ = [
@@ -27,4 +32,9 @@ __all__ = [
     "db_models",
     "errors",
     "titration",
+    "titration_dilution",
+    "titration_ingest",
+    "titration_db_uploader",
+    "titration_main",
+    "titration_utils",
 ]
