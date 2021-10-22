@@ -57,11 +57,10 @@ infection_rate["B1351"] = {"low": 0.65, "high": np.inf}
 # if the IC50 value is between specified values. Otherwise it's an
 # failure.
 positive_control_ic50: DefaultDict[str, Dict] = defaultdict(
-    lambda: {"low": 400, "high": 1200}
+    lambda: {"low": 350, "high": 600}
 )
 # variant-specific limits
-positive_control_ic50["B117"] = {"low": 250, "high": 600}
-positive_control_ic50["B.1.617.2 (India)"] = {"low": 900, "high": np.inf}
+positive_control_ic50["B117"] = {"low": 250, "high": 500}
 
 
 # the difference between replicates in "percentage infected"
