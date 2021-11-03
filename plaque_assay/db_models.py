@@ -217,6 +217,7 @@ class NE_virus_titration_model_parameters(Base):
     __tablename__ = "NE_virus_titration_model_parameters"
     id = sql.Column(sql.Integer, primary_key=True)
     dilution = sql.Column(sql.Integer, nullable=False)
+    nanobody = sql.Column(sql.Integer, nullable=False)
     param_top = sql.Column(sql.DECIMAL(20, 15))
     param_bottom = sql.Column(sql.DECIMAL(20, 15))
     param_ec50 = sql.Column(sql.DECIMAL(20, 15))
@@ -229,6 +230,7 @@ class NE_virus_titration_final_results(Base):
     __tablename__ = "NE_virus_titration_final_results"
     id = sql.Column(sql.Integer, primary_key=True)
     dilution = sql.Column(sql.Integer, nullable=False)
+    nanobody = sql.Column(sql.Integer, nullable=False)
     ic50 = sql.Column(sql.DECIMAL(30, 15))
     status = sql.Column(sql.String(45))
     workflow_id = sql.Column(sql.Integer, nullable=False)
