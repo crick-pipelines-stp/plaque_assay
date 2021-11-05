@@ -36,7 +36,7 @@ def read_data_from_list(plate_list: List) -> pd.DataFrame:
         # should usually be Evaluation1, sometimes might be Evaluation2 if
         # there's been a re-anaysis. Hopefully never multiple, but select
         # the most recent just-in-case
-        all_evaluations = glob(os.path.join(path, "Evaluation*", "PlateResults.txt))"))
+        all_evaluations = glob(os.path.join(path, "Evaluation*", "PlateResults.txt"))
         if len(all_evaluations) > 1:
             logging.warning("multiple Evaluation directories found, using the latest")
         plate_result_path = sorted(all_evaluations)[-1]
