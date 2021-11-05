@@ -46,10 +46,6 @@ def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
             df[colname] = df[colname].fillna(0)
         dataframes.append(df)
     df_concat = pd.concat(dataframes)
-    # remove empty wells
-    df_concat = df_concat[
-        ~df_concat["Well"].isin(titration_consts.TITRATION_EMPTY_WELLS)
-    ]
     # sample dilutions (1-4)
     dilution_int = [
         titration_utils.pos_control_dilution(well) for well in df_concat["Well"]
@@ -57,7 +53,11 @@ def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
     # sample dilutions (40-2560)
     sample_dilution = [consts.plate_mapping.get(i) if i else None for i in dilution_int]
     df_concat["Dilution"] = sample_dilution
-    # virus dilution factors (2-64)
+    # 2 types of nanobody on different rows, indicate which nanobody is which
+    df_concat["nanobody"] = [
+        titration_consts.TITRATION_NANOBODY_MAPPING.get(i[0]) for i in df_concat["Well"]
+    ]
+    # virus dilutio2-64)
     virus_dilutions = []
     for col_int in df_concat["Column"]:
         virus_dilution = titration_consts.TITRATION_COLUMN_DILUTION_MAPPING.get(col_int)

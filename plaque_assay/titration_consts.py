@@ -10,10 +10,10 @@ TITRATION_VIRUS_ONLY_ROWS = (
     "D",
     "E",
     "F",
-    # G nanobody
-    # H nanobody
-    # "I", held for later use
-    # "J", held for later use
+    # G nanobody 1
+    # H nanobody 1
+    # I nanobody 2
+    # J nanobody 2
     "K",
     "L",
     "M",
@@ -23,19 +23,25 @@ TITRATION_VIRUS_ONLY_ROWS = (
 )
 
 TITRATION_VIRUS_ONLY_WELLS = [
-    f"{row}{col:02}" for row in TITRATION_VIRUS_ONLY_ROWS for col in range(1, 13)
+    f"{row}{col:02}" for row in TITRATION_VIRUS_ONLY_ROWS for col in range(1, 25)
 ]
 
 TITRATION_NO_VIRUS_ROWS = ["P"]
 
 TITRATION_NO_VIRUS_WELLS = set(
-    f"{row}{col:02}" for row in TITRATION_NO_VIRUS_ROWS for col in range(1, 13)
+    f"{row}{col:02}" for row in TITRATION_NO_VIRUS_ROWS for col in range(1, 25)
 )
 
-TITRATION_POSITIVE_CONTROL_ROWS = ["G", "H"]
+TITRATION_POSITIVE_CONTROL_ROWS = ["G", "H", "I", "J"]
+TITRATION_NANOBODY_MAPPING = {
+    "G": 1,
+    "H": 1,
+    "I": 2,
+    "J": 2,
+}
 
 TITRATION_POSITIVE_CONTROL_WELLS = [
-    f"{row}{col:02}" for row in TITRATION_POSITIVE_CONTROL_ROWS for col in range(1, 13)
+    f"{row}{col:02}" for row in TITRATION_POSITIVE_CONTROL_ROWS for col in range(1, 25)
 ]
 
 TITRATION_COLUMN_DILUTION_MAPPING = {
@@ -51,9 +57,20 @@ TITRATION_COLUMN_DILUTION_MAPPING = {
     10: 32,
     11: 64,
     12: 64,
+    13: 6,
+    14: 6,
+    15: 12,
+    16: 12,
+    17: 24,
+    18: 24,
+    19: 48,
+    20: 48,
+    21: 96,
+    22: 96,
+    23: 192,
+    24: 192,
 }
 
-TITRATION_EMPTY_COLUMNS = list(range(13, 25))
 
 ALL_ROWS = [
     "A",
@@ -72,8 +89,4 @@ ALL_ROWS = [
     "N",
     "O",
     "P",
-]
-
-TITRATION_EMPTY_WELLS = [
-    f"{row}{col:02}" for row in ALL_ROWS for col in TITRATION_EMPTY_COLUMNS
 ]

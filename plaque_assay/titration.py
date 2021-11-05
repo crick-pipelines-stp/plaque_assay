@@ -47,9 +47,12 @@ class Titration:
             `{sample_name: Sample`}
         """
         sample_dict: Dict[str, Sample] = dict()
-        for dilution, group in self.df.groupby("Virus_dilution_factor"):
+        for (dilution, nanobody), group in self.df.groupby(
+            ["Virus_dilution_factor", "nanobody"]
+        ):
             sample_df = group[["Dilution", "Percentage Infected"]]
-            sample_dict[dilution] = Sample(str(dilution), sample_df, self.variant)
+            sample_name = f"{dilution}-{int(nanobody)}"
+            sample_dict[sample_name] = Sample(sample_name, sample_df, self.variant)
         return sample_dict
 
     def get_final_results(self) -> pd.DataFrame:
@@ -57,10 +60,10 @@ class Titration:
         return dataframe of titration results suitable for uploading to
         the LIMS database. e.g:
         ```
-        +----------+------+--------+-------------+
-        | dilution | ic50 | status | workflow_id |
-        +----------+------+--------+-------------+
-        |          |      |        |             |
+        +----------+----------+------+--------+-------------+
+        | dilution | nanobody | ic50 | status | workflow_id |
+        +----------+----------+------+--------+-------------+
+        |          |          |      |        |             |
         ```
 
         Arguments
@@ -72,10 +75,15 @@ class Titration:
         pd.DataFrame
         """
         dilutions: List[int] = []
+        nanobodies: List[int] = []
         ic50s: List[Optional[float]] = []
         statuses: List[Optional[str]] = []
-        for dilution, dilution_sample in self.samples:
+        for sample_name, dilution_sample in self.samples:
+            dilution, nanobody = sample_name.split("-")
+            dilution = int(dilution)
+            nanobody = int(nanobody)
             dilutions.append(dilution)
+            nanobodies.append(nanobody)
             if dilution_sample.ic50 < 0:
                 # is an error code
                 ic50s.append(None)
@@ -86,7 +94,12 @@ class Titration:
                 ic50s.append(dilution_sample.ic50)
                 statuses.append(None)
         results_df = pd.DataFrame(
-            {"dilution": dilutions, "ic50": ic50s, "status": statuses}
+            {
+                "dilution": dilutions,
+                "nanobody": nanobodies,
+                "ic50": ic50s,
+                "status": statuses,
+            }
         )
         results_df["workflow_id"] = self.workflow_id
         return results_df
@@ -104,7 +117,10 @@ class Titration:
         pd.DataFrame
         """
         param_dict = defaultdict(list)
-        for dilution, dilution_sample in self.samples:
+        for sample_name, dilution_sample in self.samples:
+            dilution, nanobody = sample_name.split("-")
+            dilution = int(dilution)
+            nanobody = int(nanobody)
             model_params = dilution_sample.model_params
             mean_squared_error = dilution_sample.mean_squared_error
             if model_params:
@@ -112,6 +128,7 @@ class Titration:
             else:
                 top, bottom, ec50, hillslope = None, None, None, None
             param_dict["dilution"].append(dilution)
+            param_dict["nanobody"].append(nanobody)
             param_dict["param_top"].append(top)
             param_dict["param_bottom"].append(bottom)
             param_dict["param_ec50"].append(ec50)

@@ -12,9 +12,10 @@ from plaque_assay import titration_ingest
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-N_WELLS = 192  # half plate (16 rows, 12 cols)
+N_WELLS = 384  # half plate (16 rows, 12 cols)
 N_REPLICATES = 2
-N_DILUTIONS = 6
+N_DILUTIONS = 12
+N_NANOBODIES = 2
 
 
 def create_plate_list(dir_name):
@@ -127,13 +128,13 @@ def pipeline_output(workflow_id, variant_name):
     df_model_parameters = pd.read_sql(
         query_model_parameters.statement, con=session.bind
     )
-    assert df_model_parameters.shape[0] == N_DILUTIONS
+    assert df_model_parameters.shape[0] == N_DILUTIONS * N_NANOBODIES
     ##
     query_final_results = session.query(
         db_models.NE_virus_titration_final_results
     ).filter(db_models.NE_virus_titration_final_results.workflow_id == workflow_id)
     df_final_results = pd.read_sql(query_final_results.statement, con=session.bind)
-    assert df_final_results.shape[0] == N_DILUTIONS
+    assert df_final_results.shape[0] == N_DILUTIONS * N_NANOBODIES
     ##
     query_tracking = session.query(db_models.NE_titration_workflow_tracking).filter(
         db_models.NE_titration_workflow_tracking.workflow_id == workflow_id,
