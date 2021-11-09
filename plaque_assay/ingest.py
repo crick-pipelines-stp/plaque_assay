@@ -5,6 +5,7 @@ Data I/O
 
 import logging
 import os
+from glob import glob
 from typing import List
 
 import pandas as pd
@@ -32,9 +33,16 @@ def read_data_from_list(plate_list: List) -> pd.DataFrame:
     dataframes = []
     barcodes = []
     for path in plate_list:
+        # should usually be Evaluation1, sometimes might be Evaluation2 if
+        # there's been a re-anaysis. Hopefully never multiple, but select
+        # the most recent just-in-case
+        all_evaluations = glob(os.path.join(path, "Evaluation*", "PlateResults.txt"))
+        if len(all_evaluations) > 1:
+            logging.warning("multiple Evaluation directories found, using the latest")
+        plate_result_path = sorted(all_evaluations)[-1]
         df = pd.read_csv(
             # NOTE: might not always be Evaluation1
-            os.path.join(path, "Evaluation1/PlateResults.txt"),
+            plate_result_path,
             skiprows=8,
             sep="\t",
         )
