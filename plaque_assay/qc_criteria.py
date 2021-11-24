@@ -29,16 +29,17 @@ low_cells_image_region_area_high = 1.5
 #
 # 5. Calculate median of “Background Subtracted Plaque Area” for virus only wells
 #   which are B6:G6 and A12:C12.
-#       a. If median calculated is < 0.4 or >0.8 then display this value and
+#       a. If median calculated is < 0.4 then display this value and
 #          flag ‘plate fail due to infection outside optimal range’.
 # Acceptable infection rate, which is calculated as the median
 # "Background Subtracted Plaque Area" of the virus-only-wells
 # The plate get's flagged is this is out of the expected limits.
 # set the standard limits for variants
-infection_rate: DefaultDict[str, Dict] = defaultdict(lambda: {"low": 0.4, "high": 0.8})
+infection_rate: DefaultDict[str, Dict] = defaultdict(
+    lambda: {"low": 0.4, "high": np.inf}
+)
 # variant-specific limits:
-# B1351 infection rate should always be greater than 0.65
-infection_rate["B1351"] = {"low": 0.65, "high": np.inf}
+# none
 
 
 # 6. Divide each well’s “Background Subtracted Plaque Area” by the median calculated
@@ -57,10 +58,10 @@ infection_rate["B1351"] = {"low": 0.65, "high": np.inf}
 # if the IC50 value is between specified values. Otherwise it's an
 # failure.
 positive_control_ic50: DefaultDict[str, Dict] = defaultdict(
-    lambda: {"low": 350, "high": 600}
+    lambda: {"low": 350, "high": 650}
 )
 # variant-specific limits
-positive_control_ic50["B117"] = {"low": 250, "high": 500}
+# none
 
 
 # the difference between replicates in "percentage infected"
