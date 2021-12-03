@@ -115,6 +115,43 @@ perc_47 = [
     34.030,
 ]
 
+
+perc_276 = [
+    102.49,
+    81.806,
+    55.429,
+    98.461,
+    40.68,
+    18.898,
+    3.05,
+    6.08,
+]
+
+
+perc_156 = [
+    109.148,
+    105.54,
+    134.41,
+    99.04,
+    51.856,
+    45.926,
+    18.601,
+    8.999,
+]
+
+
+perc_1675 = [
+    59.712,
+    58.014,
+    13.587,
+    6.521,
+    0.272,
+    0.0245,
+    0.541,
+    -0.10698,
+]
+
+
 df_good_inhibition = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_good}
 )
@@ -190,6 +227,40 @@ def test_calc_381():
 def test_calc_47():
     expected_ic50 = 47
     df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_47})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_276():
+    expected_ic50 = 276.79
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_276})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_156():
+    expected_ic50 = 156.71
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_156})
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    assert fit_method == "model fit"
+    assert abs(result - expected_ic50) < EPSILON
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_calc_1675():
+    expected_ic50 = 1675
+    df = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_1675})
     fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
         name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
     )
