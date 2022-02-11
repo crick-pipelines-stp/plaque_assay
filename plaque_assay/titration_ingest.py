@@ -1,3 +1,4 @@
+from glob import glob
 import os
 import logging
 from typing import List
@@ -24,12 +25,13 @@ def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:
     """
     dataframes = []
     for path in plate_list:
-        df = pd.read_csv(
-            # NOTE: might not always be Evaluation1
-            os.path.join(path, "Evaluation1/PlateResults.txt"),
-            skiprows=8,
-            sep="\t",
-        )
+        evaluations = glob(os.path.join(path, "Evaluation*", "PlateResults.txt"))
+        plate_results_path = sorted(evaluations)[-1]
+        if len(evaluations) > 1:
+            logging.warning(
+                f"multiple Evaluation dirs found, using the latest: {plate_results_path}"
+            )
+        df = pd.read_csv(plate_results_path, skiprows=8, sep="\t")
         plate_barcode = path.split(os.sep)[-1].split("__")[0]
         logging.info("plate barcode detected as %s", plate_barcode)
         well_labels = []
