@@ -299,6 +299,7 @@ def calc_model_results(
     --------
     `plaque_assay.stats.ModelResults`
     """
+    # TODO: fix this monstrosity
     df = df.dropna().sort_values("Dilution")
     x = df["Dilution"].values
     x_min = 0.0000390625
@@ -342,15 +343,33 @@ def calc_model_results(
                     model_params = None
                 else:
                     result = 1.0 / intersect.x
-                    if result < 1.0 / x.max():
-                        logging.info(
-                            "%s IC50 of %s less than lowest dilution, weak inhibition",
-                            name,
-                            result,
-                        )
-                        result = utils.result_to_int("weak inhibition")
+                    result = recast_if_out_of_bounds_ic50(result, x, name)
     logging.debug("well %s fitted with method %s", name, fit_method)
     return ModelResults(fit_method, result, model_params, mean_squared_error)
+
+
+def recast_if_out_of_bounds_ic50(
+    result: float, x: np.array, name: str
+) -> Union[float, int]:
+    """
+    if IC50 value falls beyond the tested dilutions then recast as either
+    "weak inhibition" or "complete inhibition"
+    """
+    # IC50 < 1:40 dilution
+    if result < 1.0 / x.max():
+        logging.info(
+            "%s IC50 of %s less than lowest dilution, weak inhibition", name, result,
+        )
+        result = utils.result_to_int("weak inhibition")
+    # IC50 > 1:2560 dilution
+    if result > 1.0 / x.min():
+        logging.info(
+            "%s IC50 of %s greater than highest dilution, complete inhibition",
+            name,
+            result,
+        )
+        result = utils.result_to_int("complete inhibition")
+    return result
 
 
 def hampel(x: np.array, k: int, t0: int = 3) -> List:

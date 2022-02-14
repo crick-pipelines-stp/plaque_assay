@@ -152,6 +152,19 @@ perc_1675 = [
 ]
 
 
+# https://github.com/FrancisCrickInstitute/plaque_assay/issues/60
+perc_should_be_complete_or_fail = [
+    99.90,
+    26.05,
+    4.099,
+    37.047,
+    51.86,
+    68.83,
+    49.118,
+    39.655,
+]
+
+
 df_good_inhibition = pd.DataFrame(
     {"Dilution": dilutions, "Percentage Infected": perc_good}
 )
@@ -267,4 +280,21 @@ def test_calc_1675():
     assert fit_method == "model fit"
     assert abs(result - expected_ic50) < EPSILON
     assert mean_squared_error < MSE_PASS
+    assert isinstance(model_params, stats.ModelParams)
+
+
+def test_should_be_complete_of_fail():
+    """
+    https://github.com/FrancisCrickInstitute/plaque_assay/issues/60
+    """
+    df = pd.DataFrame(
+        {"Dilution": dilutions, "Percentage Infected": perc_should_be_complete_or_fail}
+    )
+    fit_method, result, model_params, mean_squared_error = stats.calc_model_results(
+        name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
+    )
+    result_str = utils.int_to_result(result)
+    assert result_str == "complete inhibition"
+    # high MSE, should be flagged
+    assert mean_squared_error > MSE_PASS
     assert isinstance(model_params, stats.ModelParams)
