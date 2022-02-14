@@ -1,6 +1,10 @@
 Covid-19 Neutralisation Analysis
 =================================
 
+## Wiki
+https://github.com/FrancisCrickInstitute/plaque_assay/wiki
+
+
 ## Installation
 ```bash
 # in the plaque_assay directory
