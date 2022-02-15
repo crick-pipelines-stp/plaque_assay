@@ -206,6 +206,7 @@ class NE_virus_titration_normalised_results(Base):
     plaque_area = sql.Column(sql.DECIMAL(30, 20))
     normalised_plaque_area = sql.Column(sql.DECIMAL(30, 20))
     background_subtracted_plaque_area = sql.Column(sql.DECIMAL(30, 30))
+    cell_area = sql.Column(sql.DECIMAL(30, 15))
     percentage_infected = sql.Column(sql.DECIMAL(20, 15))
     dilution = sql.Column(sql.Integer, nullable=False)
     well = sql.Column(sql.String(3), nullable=False)
