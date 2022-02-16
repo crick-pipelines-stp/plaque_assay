@@ -40,6 +40,7 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
             - plaque_area
             - background_subtracted_plaque_area
             - percentage_infected
+            - cell_area
             - dilution
             - well
             - plate_barcode
@@ -53,7 +54,8 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
         normalised_results.drop(columns=["Dilution", "dilution"], inplace=True)
         normalised_results = normalised_results.rename(
             columns={
-                "Viral Plaques (global) - Area of Viral Plaques Area [µm²] - Mean per Well": "plaque_area"
+                "Viral Plaques (global) - Area of Viral Plaques Area [µm²] - Mean per Well": "plaque_area",
+                "Cells - Image Region Area [µm²] - Mean per Well": "cell_area",
             }
         )
         # select and rename columns to match db
@@ -63,6 +65,7 @@ class TitrationDatabaseUploader(BaseDatabaseUploader):
             "plaque_area",
             "normalised_plaque_area",
             "background_subtracted_plaque_area",
+            "cell_area",
             "well",
             "plate_barcode",
             "virus_dilution_factor",

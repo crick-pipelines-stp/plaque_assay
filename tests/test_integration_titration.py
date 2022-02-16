@@ -121,6 +121,8 @@ def pipeline_output(workflow_id, variant_name):
         query_normalised_results.statement, con=session.bind
     )
     assert df_normalised_results.shape[0] == N_WELLS * N_REPLICATES
+    assert len(df_normalised_results.cell_area) > 0
+    assert df_normalised_results.cell_area.notnull().sum() > 0
     ###
     query_model_parameters = session.query(
         db_models.NE_virus_titration_model_parameters
