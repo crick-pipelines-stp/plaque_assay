@@ -8,6 +8,7 @@ from typing import NamedTuple, List, Callable, Optional, Union
 import numpy as np
 import pandas as pd
 import scipy.optimize
+from numba import jit
 
 from plaque_assay import utils
 
@@ -372,6 +373,7 @@ def recast_if_out_of_bounds_ic50(
     return result
 
 
+@jit(nopython=True)
 def hampel(x: np.array, k: int, t0: int = 3) -> List:
     """Hampel's outlier test
 
