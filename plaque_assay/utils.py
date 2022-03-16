@@ -198,7 +198,9 @@ def get_dilution_from_384_well_label(well: str) -> int:
     return dilution
 
 
-def mock_384_barcode(existing_barcodes: List, wells: List) -> List:
+def mock_384_barcode(
+    existing_barcodes: Union[List, pd.Series], wells: Union[List, pd.Series]
+) -> List:
     """384 -> 96 well plate barcodes
 
     Create mock barcodes for the mock 96-well plates

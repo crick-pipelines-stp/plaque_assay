@@ -17,8 +17,8 @@ import numpy as np
 # is < 65% or > 150% of the median calculated in "calc_median_all_plates()"
 # - return these wells as a list
 # - if any are A-H12, fail entire plate
-low_cells_image_region_area_low = 0.6
-low_cells_image_region_area_high = 1.5
+low_cells_image_region_area_low = 0.8
+low_cells_image_region_area_high = 1.2
 
 
 # 3. Calculate median of “Normalised Plaque Area” for no virus wells which are
