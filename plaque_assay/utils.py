@@ -5,6 +5,7 @@ from typing import List, Union
 
 import pandas as pd
 import sqlalchemy
+import sqlalchemy.orm
 
 from plaque_assay.db_models import NE_available_strains
 from plaque_assay.errors import VariantLookupError
@@ -294,7 +295,7 @@ def get_variant_from_plate_list(
         )
         .first()
     )
-    if len(return_val) != 1:
+    if return_val is None or len(return_val) != 1:
         raise VariantLookupError(
             "plate barcode prefixes do not match any known variants in the ",
             f"LIMS database: {prefixes}",
