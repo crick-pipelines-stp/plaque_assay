@@ -99,7 +99,7 @@ class Sample:
         self.fit_method = model_results.fit_method
         self.ic50 = model_results.result
         self.ic50_pretty = (
-            self.ic50 if self.ic50 > 0 else utils.int_to_result(self.ic50)
+            self.ic50 if self.ic50 > 0 else utils.int_to_result(int(self.ic50))
         )
         self.model_params = model_results.model_params
         self.mean_squared_error = model_results.mean_squared_error

@@ -87,7 +87,7 @@ class Titration:
             if dilution_sample.ic50 < 0:
                 # is an error code
                 ic50s.append(None)
-                status_str = utils.int_to_result(dilution_sample.ic50)
+                status_str = utils.int_to_result(int(dilution_sample.ic50))
                 statuses.append(status_str)
             else:
                 # is a valid ic50 value
