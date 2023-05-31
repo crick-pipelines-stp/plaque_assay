@@ -36,7 +36,7 @@ class ModelResults(NamedTuple):
     mean_squared_error: Optional[float]
 
 
-def dr_3(x: np.array, top: Numeric, bottom: Numeric, ec50: Numeric) -> np.array:
+def dr_3(x: np.ndarray, top: Numeric, bottom: Numeric, ec50: Numeric) -> np.ndarray:
     """3 parameter dose response curve
 
     Parameters
@@ -55,8 +55,8 @@ def dr_3(x: np.array, top: Numeric, bottom: Numeric, ec50: Numeric) -> np.array:
 
 
 def dr_4(
-    x: np.array, top: Numeric, bottom: Numeric, ec50: Numeric, hill_slope: Numeric
-) -> np.array:
+    x: np.ndarray, top: Numeric, bottom: Numeric, ec50: Numeric, hill_slope: Numeric
+) -> np.ndarray:
     """4 parameter dose response curve
 
     Parameters
@@ -79,7 +79,7 @@ def dr_4(
 
 
 def intersect_between_curves(
-    x_min: Numeric, x_max: Numeric, curve: np.array, intersect: Numeric = 50
+    x_min: Numeric, x_max: Numeric, curve: np.ndarray, intersect: Numeric = 50
 ) -> Intersect:
     """Find intersect of two curves.
     Really hacky way of finding intersect of two curves,
@@ -152,7 +152,7 @@ def non_linear_model(x: Numeric, y: Numeric, func: Callable = dr_4) -> ModelPara
     return ModelParams(*popt)
 
 
-def model_mse(y_observed: np.array, y_fitted: np.array) -> float:
+def model_mse(y_observed: np.ndarray, y_fitted: np.ndarray) -> float:
     """
     Mean squared error between the observed
     and the estimated values.
@@ -237,7 +237,7 @@ def calc_heuristics_dilutions(
 
 
 def calc_heuristics_curve(
-    name: str, x: np.array, y: np.array, threshold: Numeric, weak_threshold: Numeric
+    name: str, x: np.ndarray, y: np.ndarray, threshold: Numeric, weak_threshold: Numeric
 ) -> Optional[int]:
     """
     heuristics based on the model fit where we cannot calculate the intercept
@@ -350,7 +350,7 @@ def calc_model_results(
 
 
 def recast_if_out_of_bounds_ic50(
-    result: float, x: np.array, name: str
+    result: float, x: np.ndarray, name: str
 ) -> Union[float, int]:
     """
     if IC50 value falls beyond the tested dilutions then recast as either
@@ -359,7 +359,9 @@ def recast_if_out_of_bounds_ic50(
     # IC50 < 1:40 dilution
     if result < 1.0 / x.max():
         logging.info(
-            "%s IC50 of %s less than lowest dilution, weak inhibition", name, result,
+            "%s IC50 of %s less than lowest dilution, weak inhibition",
+            name,
+            result,
         )
         result = utils.result_to_int("weak inhibition")
     # IC50 > 1:2560 dilution
@@ -374,7 +376,7 @@ def recast_if_out_of_bounds_ic50(
 
 
 @jit(nopython=True)
-def hampel(x: np.array, k: int, t0: int = 3) -> List:
+def hampel(x: np.ndarray, k: int, t0: int = 3) -> List:
     """Hampel's outlier test
 
     Adapted from hampel function in R package pracma.
