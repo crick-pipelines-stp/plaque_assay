@@ -1,4 +1,5 @@
-![plaque_assay_logo](https://github.com/FrancisCrickInstitute/plaque_assay/assets/10051679/d2afc3fa-f338-47a9-8feb-50f8a9799146)
+![plaque_assay](https://github.com/FrancisCrickInstitute/plaque_assay/assets/10051679/dc8f181f-c8f3-4446-a40a-8e2faa46cbd8)
+
 
 # Covid-19 Neutralisation Analysis
 
