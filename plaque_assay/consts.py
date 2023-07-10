@@ -4,7 +4,6 @@ NO_VIRUS_WELLS = ("F12", "G12", "H12")
 
 POSITIVE_CONTROL_WELLS = ("D12", "E12", "A06", "H06")
 
-plate_mapping = {1: 1 / 40, 2: 1 / 160, 3: 1 / 640, 4: 1 / 2560}
 
 UNWANTED_METADATA = [
     "Plane",
@@ -17,3 +16,16 @@ UNWANTED_METADATA = [
     "Cell Type",
     "Cell Count",
 ]
+
+DILUTION_1 = 40
+DILUTION_2 = 400
+DILUTION_3 = 4000
+DILUTION_4 = 40000
+
+
+PLATE_MAPPING = {
+    1: 1 / DILUTION_1,
+    2: 1 / DILUTION_2,
+    3: 1 / DILUTION_3,
+    4: 1 / DILUTION_4,
+}
