@@ -1,5 +1,6 @@
 from plaque_assay.sample import Sample
 from plaque_assay.failure import WellFailure
+from plaque_assay import consts
 
 import pandas as pd
 
@@ -110,7 +111,11 @@ good_but_wrong_ic50_for_pos_cntrl = pd.DataFrame(
 high_mse = pd.DataFrame({"Dilution": dilutions, "Percentage Infected": perc_high_mse})
 
 
-def test_check_positive_control():
+def test_check_positive_control(monkeypatch):
+    monkeypatch.setattr(consts, "DILUTION_1", 40)
+    monkeypatch.setattr(consts, "DILUTION_2", 160)
+    monkeypatch.setattr(consts, "DILUTION_3", 480)
+    monkeypatch.setattr(consts, "DILUTION_4", 2560)
     sample_good = Sample(sample_name="A06", data=good_test_data, variant=VARIANT)
     # shouldn't have any positive control failures
     assert len(sample_good.failures) == 0
@@ -138,7 +143,11 @@ def test_check_positive_control_failure():
     #assert len(sample_right_ic50.failures) == 0
 
 
-def test_check_duplicate_differences():
+def test_check_duplicate_differences(monkeypatch):
+    monkeypatch.setattr(consts, "DILUTION_1", 40)
+    monkeypatch.setattr(consts, "DILUTION_2", 160)
+    monkeypatch.setattr(consts, "DILUTION_3", 480)
+    monkeypatch.setattr(consts, "DILUTION_4", 2560)
     sample_bad_rep = Sample(
         sample_name="A01", data=bad_replicate_test_data, variant=VARIANT
     )
@@ -168,7 +177,11 @@ def test_check_for_model_fit_failure():
     )
 
 
-def test_check_for_high_mse():
+def test_check_for_high_mse(monkeypatch):
+    monkeypatch.setattr(consts, "DILUTION_1", 40)
+    monkeypatch.setattr(consts, "DILUTION_2", 160)
+    monkeypatch.setattr(consts, "DILUTION_3", 480)
+    monkeypatch.setattr(consts, "DILUTION_4", 2560)
     sample = Sample(sample_name="A01", data=high_mse, variant=VARIANT)
     assert len(sample.failures) > 0
     failure = list(sample.failures)[0]
