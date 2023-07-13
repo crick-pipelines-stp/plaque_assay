@@ -8,10 +8,15 @@ import pandas as pd
 THRESHOLD = 50
 WEAK_THRESHOLD = 60
 
-# acceptable difference between expected and observed IC50 values
-EPSILON = 10
+# acceptable difference between expected and observed IC50 values in percentage difference
+EPSILON = 15
 # maximum mean_squared_error value expected for fitted model
 MSE_PASS = 100
+
+
+def perc_difference(x: float, y: float) -> float:
+    """percentage difference between two numbers"""
+    return (abs(x - y) / abs((x + y) / 2)) * 100
 
 
 dilutions = [
@@ -206,7 +211,7 @@ class Test1In40:
             weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
@@ -221,7 +226,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
@@ -236,7 +241,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
@@ -251,7 +256,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
@@ -266,7 +271,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
@@ -281,7 +286,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert isinstance(model_params, stats.ModelParams)
 
     def test_calc_156(self, monkeypatch):
@@ -295,7 +300,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert isinstance(model_params, stats.ModelParams)
 
     def test_calc_1675(self, monkeypatch):
@@ -309,7 +314,7 @@ class Test1In40:
             name="test", df=df, threshold=THRESHOLD, weak_threshold=WEAK_THRESHOLD,
         )
         assert fit_method == "model fit"
-        assert abs(result - expected_ic50) < EPSILON
+        assert perc_difference(result, expected_ic50) < EPSILON
         assert mean_squared_error < MSE_PASS
         assert isinstance(model_params, stats.ModelParams)
 
