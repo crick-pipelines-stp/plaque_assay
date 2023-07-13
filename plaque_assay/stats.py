@@ -146,7 +146,7 @@ def non_linear_model(x: Numeric, y: Numeric, func: Callable = dr_4) -> ModelPara
     """
     # initial guess at sensible parameters
     p0 = [0, 100, 0.015, 1]
-    bounds = ((-0.01, 0, -10, -10), (100, 120, 10, 10))
+    bounds = ((-0.01, 0, -10, 0), (100, 120, 10, 5))
     popt, *_ = scipy.optimize.curve_fit(
         func, x, y, p0=p0, method="trf", bounds=bounds, maxfev=500
     )

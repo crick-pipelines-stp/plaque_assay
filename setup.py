@@ -8,7 +8,7 @@ def read_requirements():
 
 setup(
     name="plaque_assay",
-    version="0.1",
+    version="0.3",
     author="Scott Warchal",
     author_email="scott.warchal@crick.ac.uk",
     license="MIT",
