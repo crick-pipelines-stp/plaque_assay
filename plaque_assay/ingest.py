@@ -70,7 +70,7 @@ def read_data_from_list(plate_list: List) -> pd.DataFrame:
     # mock wells
     df_concat["Well"] = [utils.well_384_to_96(i) for i in df_concat["Well"]]
     df_concat["PlateNum"] = [int(i[1]) for i in df_concat["Plate_barcode"]]
-    df_concat["Dilution"] = [consts.plate_mapping[i] for i in df_concat["PlateNum"]]
+    df_concat["Dilution"] = [consts.PLATE_MAPPING[i] for i in df_concat["PlateNum"]]
     logging.debug("input data shape: %s", df_concat.shape)
     return df_concat
 

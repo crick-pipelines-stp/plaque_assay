@@ -11,6 +11,7 @@ import scipy.optimize
 from numba import jit
 
 from plaque_assay import utils
+from plaque_assay import consts
 
 
 Numeric = Union[int, float]
@@ -190,7 +191,7 @@ def calc_heuristics_dilutions(
     """
     result = None
     avg = group.groupby("Dilution")["Percentage Infected"].mean()
-    # convert dilutions into 40 -> 2560
+    # convert dilutions into 40 -> 40_000
     avg.index = 1 / avg.index
     avg.index = avg.index.astype(int)
     # round to nearest 10
@@ -201,13 +202,16 @@ def calc_heuristics_dilutions(
     try:
         # if 2 most dilute values are below threshold, then
         # label it as complete inhibition
-        if avg[2560] <= threshold and avg[640] <= threshold:
+        if avg[consts.DILUTION_4] <= threshold and avg[consts.DILUTION_3] <= threshold:
             result = "complete inhibition"
     except KeyError:
         # missing this dilution, possibly removed due to high-background
         try:
             # try the next dilution
-            if avg[640] <= threshold and avg[160] <= threshold:
+            if (
+                avg[consts.DILUTION_3] <= threshold
+                and avg[consts.DILUTION_2] <= threshold
+            ):
                 result = "complete inhibition"
         except KeyError:
             # if this returns a KeyError aswell we're missing 2 dilutions
@@ -215,13 +219,19 @@ def calc_heuristics_dilutions(
             result = "failed to fit model"
     # check for weak inhibition
     try:
-        if avg[40] > threshold and avg[40] < weak_threshold:
+        if (
+            avg[consts.DILUTION_1] > threshold
+            and avg[consts.DILUTION_1] < weak_threshold
+        ):
             result = "weak inhibition"
     except KeyError:
         # missing this dilution, possibly removed due to high-background
         try:
             # try the next dilution
-            if avg[160] > threshold and avg[160] < weak_threshold:
+            if (
+                avg[consts.DILUTION_2] > threshold
+                and avg[consts.DILUTION_2] < weak_threshold
+            ):
                 result = "weak inhibition"
         except KeyError:
             # if this returns a KeyError aswell we're missing 2 dilutions
@@ -303,8 +313,8 @@ def calc_model_results(
     # TODO: fix this monstrosity
     df = df.dropna().sort_values("Dilution")
     x = df["Dilution"].values
-    x_min = 0.0000390625
-    x_max = 0.25
+    x_min = (1 / consts.DILUTION_4) / 10
+    x_max = (1 / consts.DILUTION_1) * 10
     x_interpolated = np.logspace(np.log10(x_min), np.log10(x_max), 10000)
     y = df["Percentage Infected"].values
     model_params = None
@@ -356,7 +366,7 @@ def recast_if_out_of_bounds_ic50(
     if IC50 value falls beyond the tested dilutions then recast as either
     "weak inhibition" or "complete inhibition"
     """
-    # IC50 < 1:40 dilution
+    # IC50 < lowest dilution (1:40)
     if result < 1.0 / x.max():
         logging.info(
             "%s IC50 of %s less than lowest dilution, weak inhibition",
@@ -364,7 +374,7 @@ def recast_if_out_of_bounds_ic50(
             result,
         )
         result = utils.result_to_int("weak inhibition")
-    # IC50 > 1:2560 dilution
+    # IC50 > highest dilution (1:40_000)
     if result > 1.0 / x.min():
         logging.info(
             "%s IC50 of %s greater than highest dilution, complete inhibition",

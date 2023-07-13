@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from plaque_assay.experiment import Experiment
+from plaque_assay import consts
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,15 @@ experiment_list = [
 ]
 
 
-def test_experiment_failures_as_dataframe():
+def test_experiment_failures_as_dataframe(monkeypatch):
+    monkeypatch.setattr(consts, "DILUTION_1", 40)
+    monkeypatch.setattr(consts, "DILUTION_2", 160)
+    monkeypatch.setattr(consts, "DILUTION_3", 480)
+    monkeypatch.setattr(consts, "DILUTION_4", 2560)
+    experiment_list = [
+        Experiment(EXPERIMENT_DF),
+        Experiment(EXPERIMENT_DF_2),
+    ]
     for experiment in experiment_list:
         failures_df = experiment.get_failures_as_dataframe()
         assert isinstance(failures_df, pd.DataFrame)
