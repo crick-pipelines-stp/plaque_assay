@@ -1,12 +1,15 @@
-import datetime
 import os
+import datetime
 
 import pandas as pd
 import sqlalchemy
 
 import plaque_assay
-from plaque_assay import (db_models, titration, titration_db_uploader,
-                          titration_ingest)
+from plaque_assay import db_models
+from plaque_assay import titration
+from plaque_assay import titration_db_uploader
+from plaque_assay import titration_ingest
+
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 N_WELLS = 384  # half plate (16 rows, 12 cols)
@@ -16,16 +19,8 @@ N_NANOBODIES = 2
 
 
 def create_plate_list(dir_name):
-    # FIXME: update test data paths
     paths = os.path.abspath(
-        os.path.join(
-            CURRENT_DIR,
-            "test_data",
-            "dilution_1_10",
-            "titration_data",
-            "real_data",
-            dir_name,
-        )
+        os.path.join(CURRENT_DIR, "..", "test_data", "dilution_1_4", "titration_data", "real_data", dir_name)
     )
     return [os.path.join(paths, i) for i in os.listdir(paths)]
 
