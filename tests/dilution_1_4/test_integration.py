@@ -1,31 +1,26 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone, timedelta
 
 import pandas as pd
 import sqlalchemy
 
-from plaque_assay import db_models, db_uploader, ingest, utils
+from plaque_assay import ingest, db_uploader, db_models, utils
 from plaque_assay.experiment import Experiment
 
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-WORKFLOW_1283 = 1283
-WORKFLOW_1273 = 1273
-
-TEST_DATA_DIR_1283_ENG2 = os.path.abspath(
-    os.path.join(CURRENT_DIR, "test_data", "dilution_1_10", "NA_raw_data_1283_Eng2")
+TEST_DATA_DIR_191_ENG2 = os.path.abspath(
+    os.path.join(CURRENT_DIR, "..", "test_data", "dilution_1_4", "NA_raw_data_191_Eng2")
 )
-TEST_DATA_DIR_1273_XBB116 = os.path.abspath(
-    os.path.join(CURRENT_DIR, "test_data", "dilution_1_10", "NA_raw_data_1273_XBB116")
+TEST_DATA_DIR_228_DELTA = os.path.abspath(
+    os.path.join(CURRENT_DIR, "..", "test_data", "dilution_1_4", "NA_raw_data_228_delta")
 )
-
-PLATE_LIST_1283_ENG2 = [
-    os.path.join(TEST_DATA_DIR_1283_ENG2, i)
-    for i in os.listdir(TEST_DATA_DIR_1283_ENG2)
+PLATE_LIST_191_ENG2 = [
+    os.path.join(TEST_DATA_DIR_191_ENG2, i) for i in os.listdir(TEST_DATA_DIR_191_ENG2)
 ]
-PLATE_LIST_1273_XBB116 = [
-    os.path.join(TEST_DATA_DIR_1273_XBB116, i)
-    for i in os.listdir(TEST_DATA_DIR_1273_XBB116)
+PLATE_LIST_228_DELTA = [
+    os.path.join(TEST_DATA_DIR_228_DELTA, i)
+    for i in os.listdir(TEST_DATA_DIR_228_DELTA)
 ]
 
 
@@ -42,30 +37,30 @@ def setup_module():
     variant_england2 = db_models.NE_available_strains(
         mutant_strain="England2", plate_id_1="S01", plate_id_2="S02"
     )
-    variant_xbb = db_models.NE_available_strains(
-        mutant_strain="XBB.1.16", plate_id_1="S37", plate_id_2="S38"
+    variant_delta = db_models.NE_available_strains(
+        mutant_strain="B.1.617.2 (India)", plate_id_1="S09", plate_id_2="S10"
     )
     session.add(variant_england2)
-    session.add(variant_xbb)
+    session.add(variant_delta)
     # add workflows to testing database
     # just required columns
-    workflow_1283 = db_models.NE_workflow_tracking(
+    workflow_191 = db_models.NE_workflow_tracking(
         master_plate="master_plate_string",
         start_date=datetime.now() - timedelta(days=1),
         no_of_variants=1,
-        workflow_id=1283,
+        workflow_id=191,
     )
-    workflow_1273 = db_models.NE_workflow_tracking(
+    workflow_228 = db_models.NE_workflow_tracking(
         master_plate="master_plate_string_2",
         start_date=datetime.now() - timedelta(days=1),
         no_of_variants=5,
-        workflow_id=1273,
+        workflow_id=228,
     )
-    session.add(workflow_1283)
-    session.add(workflow_1273)
+    session.add(workflow_191)
+    session.add(workflow_228)
     session.commit()
-    run_experiment(PLATE_LIST_1283_ENG2)
-    run_experiment(PLATE_LIST_1273_XBB116)
+    run_experiment(PLATE_LIST_191_ENG2)
+    run_experiment(PLATE_LIST_228_DELTA)
 
 
 def teardown_module():
@@ -101,35 +96,22 @@ def run_experiment(plate_list):
 
 def test_is_final_variant_upload():
     """
-    test database is only expecting a single variant for workflow 1283,
+    test database is only expecting a single variant for workflow 191,
     so the England2 upload in `test_integration` should be marked as the
     final upload and have a timestamp
     """
     query = (
         session.query(db_models.NE_workflow_tracking)
-        .filter(db_models.NE_workflow_tracking.workflow_id == WORKFLOW_1283)
+        .filter(db_models.NE_workflow_tracking.workflow_id == 191)
         .first()
     )
     final_variant_upload = query.final_results_upload.replace(tzinfo=timezone.utc)
     assert datetime.now(timezone.utc) - final_variant_upload < timedelta(minutes=5)
 
 
-def test_is_not_final_variant_upload():
-    """
-    test database is expecting 5 variants for workflow 1273, we've only
-    uploaded 1 variant, so final_results_upload should not be set
-    """
-    query = (
-        session.query(db_models.NE_workflow_tracking)
-        .filter(db_models.NE_workflow_tracking.workflow_id == WORKFLOW_1273)
-        .first()
-    )
-    assert query.final_results_upload is None
-
-
 def test_final_results():
     query = session.query(db_models.NE_final_results).filter(
-        db_models.NE_final_results.workflow_id == WORKFLOW_1283
+        db_models.NE_final_results.workflow_id == 191
     )
     df_191 = pd.read_sql(query.statement, con=engine)
     assert df_191.shape[0] == 96
@@ -137,16 +119,16 @@ def test_final_results():
 
 def test_model_parameters():
     query = session.query(db_models.NE_model_parameters).filter(
-        db_models.NE_model_parameters.workflow_id == WORKFLOW_1283
+        db_models.NE_model_parameters.workflow_id == 191
     )
-    df = pd.read_sql(query.statement, con=engine)
-    assert df.shape[0] == 96
+    df_191 = pd.read_sql(query.statement, con=engine)
+    assert df_191.shape[0] == 96
 
 
 def test_reporter_plate_status():
     query = (
         session.query(db_models.NE_reporter_plate_status)
-        .filter(db_models.NE_model_parameters.workflow_id == WORKFLOW_1283)
+        .filter(db_models.NE_model_parameters.workflow_id == 191)
         .first()
     )
     assert query.status == "awaiting"
@@ -154,42 +136,43 @@ def test_reporter_plate_status():
 
 def test_indexfiles():
     query = session.query(db_models.NE_raw_index).filter(
-        db_models.NE_raw_index.workflow_id == WORKFLOW_1283
+        db_models.NE_raw_index.workflow_id == 191
     )
-    df = pd.read_sql(query.statement, con=engine)
-    assert df.shape[0] > 0
+    df_191 = pd.read_sql(query.statement, con=engine)
+    assert df_191.shape[0] > 0
 
 
 def test_plate_results():
     query = session.query(db_models.NE_raw_results).filter(
-        db_models.NE_raw_results.workflow_id == WORKFLOW_1283
+        db_models.NE_raw_results.workflow_id == 191
     )
-    df = pd.read_sql(query.statement, con=engine)
-    assert df.shape[0] > 0
+    df_191 = pd.read_sql(query.statement, con=engine)
+    assert df_191.shape[0] > 0
 
 
 def test_normalised_results():
     query = session.query(db_models.NE_normalized_results).filter(
-        db_models.NE_normalized_results.workflow_id == WORKFLOW_1283
+        db_models.NE_normalized_results.workflow_id == 191
     )
-    df = pd.read_sql(query.statement, con=engine)
-    assert df.shape[0] > 0
+    df_191 = pd.read_sql(query.statement, con=engine)
+    assert df_191.shape[0] > 0
 
 
 def test_already_uploaded():
     lims_db = db_uploader.AnalysisDatabaseUploader(session)
     variant = "England2"
-    workflow_id = WORKFLOW_1283
+    workflow_id = 191
     assert lims_db.already_uploaded(workflow_id, variant)
 
 
-def test_failed_results_1273():
+def test_failed_results_228():
     """
-    check that the failure table is as expected.
+    228 Delta has lots of failures, check that the
+    failure table is as expected.
     """
     query = session.query(db_models.NE_failed_results).filter(
-        db_models.NE_failed_results.workflow_id == WORKFLOW_1273,
-        db_models.NE_failed_results.variant == "XBB.1.16",
+        db_models.NE_failed_results.workflow_id == 228,
+        db_models.NE_failed_results.variant == "B.1.617.2 (India)",
     )
     df_failures = pd.read_sql(query.statement, con=engine)
     # check we have some entries
@@ -202,25 +185,24 @@ def test_failed_results_1273():
     # check that there are no plate and well column mix-ups
     # can do this by checking that no well labels end with "000228"
     for i in df_failures["well"].values:
-        assert not i.endswith("001273")
+        assert not i.endswith("000228")
     for i in df_failures["plate"].values:
-        assert i.endswith(("001273", "DILUTION SERIES"))
+        assert i.endswith(("000228", "DILUTION SERIES"))
 
 
-def test_failed_results_1283():
+def test_failed_results_191():
     """check that the failure table is as expected"""
     query = session.query(db_models.NE_failed_results).filter(
-        db_models.NE_failed_results.workflow_id == WORKFLOW_1283,
+        db_models.NE_failed_results.workflow_id == 191,
         db_models.NE_failed_results.variant == "England2",
     )
     df_failures = pd.read_sql(query.statement, con=engine)
-    print(df_failures)
     # check we have some entries
     assert df_failures.shape[0] > 0
     # check we have both plate and well failures
     # check that there are no plate and well column mix-ups
-    # can do this by checking that no well labels end with "0001283"
+    # can do this by checking that no well labels end with "000191"
     for i in df_failures["well"].values:
-        assert not i.endswith("001283")
+        assert not i.endswith("000191")
     for i in df_failures["plate"].values:
-        assert i.endswith(("001283", "DILUTION SERIES"))
+        assert i.endswith(("000191", "DILUTION SERIES"))

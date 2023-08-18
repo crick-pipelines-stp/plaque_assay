@@ -7,7 +7,7 @@ from plaque_assay import consts
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "test_data", "experiment_df"))
+TEST_DATA_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "..", "test_data", "dilution_1_4", "experiment_df"))
 EXAMPLE_EXPERIMENT_PATH = os.path.join(TEST_DATA_DIR, "experiment_df_example.csv")
 EXAMPLE_EXPERIMENT_PATH_2 = os.path.join(TEST_DATA_DIR, "experiment_df_example_2.csv")
 EXPERIMENT_DF = pd.read_csv(EXAMPLE_EXPERIMENT_PATH)

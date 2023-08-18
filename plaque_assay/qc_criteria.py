@@ -3,7 +3,6 @@ from typing import DefaultDict, Dict
 
 import numpy as np
 
-
 # 1. Calculate median of “Cells - Image Region Area [¬µm¬≤] - Mean per Well”
 #   for all wells of all plates
 #
@@ -57,6 +56,7 @@ infection_rate: DefaultDict[str, Dict] = defaultdict(
 # If this sample is a postitive control, then determine
 # if the IC50 value is between specified values. Otherwise it's an
 # failure.
+# TODO: check if these need to be updated following the 1:10 dilution
 positive_control_ic50: DefaultDict[str, Dict] = defaultdict(
     lambda: {"low": 350, "high": 650}
 )
