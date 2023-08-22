@@ -2,11 +2,9 @@ from typing import List
 
 import sqlalchemy
 
-from plaque_assay import titration_db_uploader
-from plaque_assay import titration_ingest
 from plaque_assay import utils
 from plaque_assay.main import create_engine
-from plaque_assay.titration import Titration
+from plaque_assay.titration import Titration, db_uploader, ingest
 
 
 def run(plate_list: List[str]) -> None:
@@ -24,14 +22,14 @@ def run(plate_list: List[str]) -> None:
     engine = create_engine(test=False)
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
-    lims_db_titration = titration_db_uploader.TitrationDatabaseUploader(session)
+    lims_db_titration = db_uploader.TitrationDatabaseUploader(session)
     workflow_id = utils.get_workflow_id_from_plate_list(plate_list)
     variant = utils.get_variant_from_plate_list(plate_list, session, titration=True)
     if lims_db_titration.already_uploaded(workflow_id):
         print(f"workflow_id: {workflow_id} already have results in the database")
         # still exist successfully so task is marked complete
         return None
-    dataset = titration_ingest.read_data_from_list(plate_list)
+    dataset = ingest.read_data_from_list(plate_list)
     titration = Titration(dataset, variant=variant)
     normalised_results = titration.get_normalised_results()
     final_results = titration.get_final_results()

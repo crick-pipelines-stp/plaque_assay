@@ -12,7 +12,7 @@ setup(
     author="Scott Warchal",
     author_email="scott.warchal@crick.ac.uk",
     license="MIT",
-    packages=["plaque_assay"],
+    packages=["plaque_assay", "plaque_assay.titration"],
     python_requires=">=3.6",
     install_requires=read_requirements(),
     tests_require="pytest",
