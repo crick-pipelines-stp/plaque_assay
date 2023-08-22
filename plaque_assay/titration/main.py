@@ -4,7 +4,9 @@ import sqlalchemy
 
 from plaque_assay import utils
 from plaque_assay.main import create_engine
-from plaque_assay.titration import Titration, db_uploader, ingest
+
+from . import db_uploader, ingest
+from .titration_class import Titration
 
 
 def run(plate_list: List[str]) -> None:
