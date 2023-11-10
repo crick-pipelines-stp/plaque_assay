@@ -283,6 +283,8 @@ def get_variant_from_plate_list(
         # swap T for S at beginning i.e "T01" -> "S01"
         # so they match those in NE_available_strains
         prefixes = [i.replace("T", "S") for i in prefixes]
+    else:
+        prefixes = ["S" + prefix[1:] for prefix in prefixes]
     prefix_1, prefix_2 = sorted(prefixes)
     # query table to return variant name (mutant_strain) for entry matching
     # both the plate barcode prefixes
