@@ -1,14 +1,13 @@
-from glob import glob
-import os
 import logging
+import os
+from glob import glob
 from typing import List
 
 import pandas as pd
 
-from plaque_assay import utils
-from plaque_assay import consts
-from plaque_assay import titration_consts
-from plaque_assay import titration_utils
+from plaque_assay import consts, utils
+from plaque_assay.titration import consts as titration_consts
+from plaque_assay.titration import utils as titration_utils
 
 
 def read_data_from_list(plate_list: List[str]) -> pd.DataFrame:

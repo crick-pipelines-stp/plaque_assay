@@ -1,6 +1,6 @@
+import math
 import os
 import string
-import math
 from typing import List, Union
 
 import pandas as pd
@@ -9,7 +9,6 @@ import sqlalchemy.orm
 
 from plaque_assay.db_models import NE_available_strains
 from plaque_assay.errors import VariantLookupError
-
 
 RESULT_TO_INT = {
     "failed to fit model": -999,
@@ -284,6 +283,8 @@ def get_variant_from_plate_list(
         # swap T for S at beginning i.e "T01" -> "S01"
         # so they match those in NE_available_strains
         prefixes = [i.replace("T", "S") for i in prefixes]
+    else:
+        prefixes = ["S" + prefix[1:] for prefix in prefixes]
     prefix_1, prefix_2 = sorted(prefixes)
     # query table to return variant name (mutant_strain) for entry matching
     # both the plate barcode prefixes
@@ -296,10 +297,24 @@ def get_variant_from_plate_list(
         .first()
     )
     if return_val is None or len(return_val) != 1:
-        raise VariantLookupError(
-            "plate barcode prefixes do not match any known variants in the ",
-            f"LIMS database: {prefixes}",
+        # try without sample prefix if variant is found.
+        # this is because the NE_available_strains table has no guarantee
+        # that the prefixes will be registered wth an "S" prefix.
+        prefix_1 = prefix_1[1:]
+        prefix_2 = prefix_2[1:]
+        return_val = (
+            session.query(NE_available_strains.mutant_strain)
+            .filter(
+                NE_available_strains.plate_id_1 == prefix_1,
+                NE_available_strains.plate_id_2 == prefix_2,
+            )
+            .first()
         )
+        if return_val is None or len(return_val) != 1:
+            raise VariantLookupError(
+                "plate barcode prefixes do not match any known variants in the ",
+                f"LIMS database: {prefixes}",
+            )
     return return_val.mutant_strain
 
 

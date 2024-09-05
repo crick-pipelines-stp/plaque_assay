@@ -8,9 +8,9 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from plaque_assay.sample import Sample
-from plaque_assay.titration_dilution import TitrationDilution
 from plaque_assay import utils
+from plaque_assay.sample import Sample
+from plaque_assay.titration.dilution import TitrationDilution
 
 
 class Titration:

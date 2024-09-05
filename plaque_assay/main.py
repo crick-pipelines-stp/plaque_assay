@@ -3,17 +3,15 @@ Main `run()` function to launch the analysis and `run_titration()` for
 the titration analysis.
 """
 
-
 import os
 from typing import List
 
 import sqlalchemy
-from plaque_assay.experiment import Experiment
-from plaque_assay.errors import DatabaseCredentialError
 
+from plaque_assay import ingest, utils
 from plaque_assay.db_uploader import AnalysisDatabaseUploader
-from plaque_assay import ingest
-from plaque_assay import utils
+from plaque_assay.errors import DatabaseCredentialError
+from plaque_assay.experiment import Experiment
 
 
 def create_engine(test: bool = True) -> sqlalchemy.engine.base.Engine:
@@ -49,7 +47,9 @@ def create_engine(test: bool = True) -> sqlalchemy.engine.base.Engine:
             "db credentials not found in environent.",
             "Need to set NE_USER, NE_HOST_{TEST,PROD}, NE_PASSWORD",
         )
-    engine = sqlalchemy.create_engine(f"mysql://{user}:{password}@{host}/serology")
+    engine = sqlalchemy.create_engine(
+        f"mysql+mysqldb://{user}:{password}@{host}/serology"
+    )
     return engine
 
 
