@@ -1,0 +1,111 @@
+[project]
+name="plaque-assay"
+version = "1.0.0"
+requires-python = ">=3.12"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+keywords = []
+dependencies = [
+    "pandas>=1.1.3",
+    "numpy>=1.19.2",
+    "matplotlib>=3.3.2",
+    "scipy>=1.5.3,<1.11.2",
+    "sqlalchemy>=1.3",
+    "numba>=0.53",
+    "mysqlclient"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "pylint",
+    "ruff"
+]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "pytest-sugar",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = [
+    "docs",
+    "prof",
+    "prototype",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [
+    ".*",
+    "*.egg",
+    ".github",
+    "__pycache__",
+    "build",
+    "dist",
+    "prof",
+    "data",
+    "docs",
+]
+
+[tool.black]
+line-length = 150
+target-version = ["py311"]
+exclude = '''
+    asf_tools/__main__.py
+    | .tox
+    |  build
+    |  prototype
+'''
+
+[tool.isort]
+skip = [
+    "prototype",
+    "build",
+    ".tox"
+]
+profile = "black"
+atomic = true
+indent = 4
+line_length = 150
+lines_after_imports = 2
+include_trailing_comma = true
+
+[tool.pylint.FORMAT]
+max-line-length = 150
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "E0401", # import-errorß
+    "R0913", # too-many-arguments
+    "R0903", # too-few-public-methods
+    "R0904", # too-many-public-methods
+    "R0914", # too-many-locals
+    "R0912", # too-many-branches
+    "R0801", # duplicate-code
+    "R0902", # too-many-instance-attributes
+    "R0917", # too-many-positional-arguments
+    "R1710", # inconsistent-return-statements
+    "W1203", # logging-fstring-interpolation
+    "W0102", # dangerous-default-value
+]
+
+[tool.pylint.MASTER]
+ignore-paths = [
+    "prototype",
+    "build",
+    ".tox"
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 150
+exclude = [
+    "prototype",
+    "build",
+    ".tox"
+]
